@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { GOLFERS, PODS, getGolfersInPod } from './data/golfers';
 import { subscribeToPool, submitPicks, joinPool, createPool, getPool } from './firebase';
-import { TOURNAMENT_STATUS, MOCK_LEADERBOARD, MOCK_POOL_PLAYERS, MOCK_SCORECARD, getGolferScore, formatScore, calculateStandings } from './data/mockTournament';
+import { TOURNAMENT_STATUS, MOCK_LEADERBOARD, MOCK_POOL_PLAYERS, MOCK_SCORECARD, AUGUSTA_HOLES, AUGUSTA_PAR, getGolferScore, formatScore, calculateStandings, getPickedBy, calcRoundScore, calcNines } from './data/mockTournament';
 import './App.css';
 
 function App() {
@@ -225,23 +225,26 @@ function App() {
                 <>
                   <div className="myteam-summary">
                     <div className="myteam-rank-box">
-                      <span className="myteam-pos">{myRank}</span>
-                      <span className="myteam-pos-label">of {mockStandings.length}</span>
+                      <span className="myteam-pos">{myRank}<span className="myteam-pos-of">/{mockStandings.length}</span></span>
+                      <span className="myteam-pos-label">Your Rank</span>
                     </div>
-                    <div className="myteam-score-box">
-                      <span className="myteam-total">{formatScore(me.totalScore)}</span>
-                      <span className="myteam-score-label">Best 4 Total</span>
+                    <div className="myteam-leader-box">
+                      <span className="myteam-leader-name">{mockStandings[0]?.name}</span>
+                      <span className="myteam-leader-score">{formatScore(mockStandings[0]?.totalScore)}</span>
+                      <span className="myteam-pos-label">Pool Leader</span>
                     </div>
-                    <div className="myteam-status-box">
-                      <span className="myteam-cut-count">{me.madeCut}/6</span>
-                      <span className="myteam-cut-label">Made Cut</span>
-                    </div>
+                  </div>
+                  <div className="myteam-stats-row">
+                    <div className="myteam-stat"><span className="myteam-stat-val">{formatScore(me.totalScore)}</span><span className="myteam-stat-label">Best 4</span></div>
+                    <div className="myteam-stat"><span className="myteam-stat-val">{me.madeCut}/6</span><span className="myteam-stat-label">Made Cut</span></div>
+                    <div className="myteam-stat"><span className="myteam-stat-val">{me.pickedLeader ? 'Yes' : 'No'}</span><span className="myteam-stat-label">Has Leader</span></div>
                   </div>
 
                   <h3 className="section-title">Counting (Best 4)</h3>
                   {me.counting.map(g => {
                     const entry = getGolferScore(g.name);
                     const golferData = GOLFERS.find(gl => gl.name === g.name);
+                    const others = getPickedBy(g.name).filter(o => o.id !== 'luke');
                     return (
                       <div key={g.name} className={`live-golfer-card ${g.status === 'active' ? 'on-course' : ''}`} onClick={() => setSelectedGolfer(g.name)}>
                         <div className="live-golfer-pos">{typeof entry?.pos === 'number' ? `T${entry.pos}` : entry?.pos}</div>
@@ -251,6 +254,13 @@ function App() {
                           <span className="live-golfer-round">
                             {g.status === 'active' ? `R3 · Thru ${g.thru}` : g.status === 'finished' ? 'R3 Complete' : g.status === 'cut' ? 'Missed Cut' : ''}
                           </span>
+                          {others.length > 0 && (
+                            <div className="lb-owners mt-also">
+                              <span className="also-label">Also:</span>
+                              {others.slice(0, 5).map(o => <span key={o.id} className="lb-owner-chip">{o.initials}</span>)}
+                              {others.length > 5 && <span className="lb-owner-chip more">+{others.length - 5}</span>}
+                            </div>
+                          )}
                         </div>
                         <div className="live-golfer-scores">
                           <span className={`live-today ${typeof g.today === 'number' && g.today < 0 ? 'under' : typeof g.today === 'number' && g.today > 0 ? 'over' : ''}`}>
@@ -303,16 +313,25 @@ function App() {
             {leaderboard.map((g, idx) => {
               const golferData = GOLFERS.find(gl => gl.name === g.name);
               const isMine = MOCK_POOL_PLAYERS[0]?.picks.includes(g.name);
+              const pickedBy = tournamentActive ? getPickedBy(g.name) : [];
               return (
                 <div key={g.name} className={`lb-row ${g.status === 'cut' ? 'cut-row' : ''} ${g.status === 'active' ? 'active-row' : ''} ${isMine ? 'my-pick' : ''}`} onClick={() => g.status !== 'cut' && setSelectedGolfer(g.name)}>
                   <span className={`lb-pos ${g.movement === 'up' ? 'mov-up' : g.movement === 'down' ? 'mov-down' : ''}`}>
                     {g.status === 'cut' ? 'MC' : g.pos}
                   </span>
-                  <span className="lb-player">
-                    <span className="lb-flag">{golferData?.flag}</span>
-                    <span className="lb-name">{g.name}</span>
-                    {isMine && <span className="lb-mine-dot"></span>}
-                  </span>
+                  <div className="lb-player-col">
+                    <span className="lb-player">
+                      <span className="lb-flag">{golferData?.flag}</span>
+                      <span className="lb-name">{g.name}</span>
+                    </span>
+                    {pickedBy.length > 0 && (
+                      <div className="lb-owners">
+                        {pickedBy.map(o => (
+                          <span key={o.id} className={`lb-owner-chip ${o.id === 'luke' ? 'me' : ''}`} title={o.name}>{o.initials}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <span className={`lb-today ${typeof g.today === 'number' && g.today < 0 ? 'under' : typeof g.today === 'number' && g.today > 0 ? 'over' : ''}`}>
                     {g.today == null ? '-' : g.today === 'E' ? 'E' : typeof g.today === 'number' ? (g.today > 0 ? `+${g.today}` : g.today) : g.today}
                   </span>
@@ -431,6 +450,138 @@ function App() {
           </div>
         )}
       </main>
+
+      {/* ═══ SCORECARD MODAL ═══ */}
+      {selectedGolfer && (() => {
+        const sc = MOCK_SCORECARD[selectedGolfer];
+        const entry = getGolferScore(selectedGolfer);
+        const golferData = GOLFERS.find(gl => gl.name === selectedGolfer);
+        const pickedBy = getPickedBy(selectedGolfer);
+        if (!entry) return null;
+
+        const roundLabels = ['R1', 'R2', 'R3', 'R4'];
+        const activeRound = sc?.rounds ? sc.rounds.findIndex(r => r && r.some(h => h === null)) : -1;
+
+        return (
+          <div className="sc-overlay" onClick={() => setSelectedGolfer(null)}>
+            <div className="sc-modal" onClick={e => e.stopPropagation()}>
+              <button className="sc-close" onClick={() => setSelectedGolfer(null)}>&times;</button>
+
+              <div className="sc-header">
+                <span className="sc-flag">{golferData?.flag}</span>
+                <div className="sc-header-info">
+                  <h2 className="sc-name">{selectedGolfer}</h2>
+                  <span className="sc-pos-line">
+                    {entry.status === 'cut' ? 'Missed Cut' : `T${entry.pos}`}
+                    {entry.status === 'active' && ` · Thru ${entry.thru}`}
+                    {entry.status === 'finished' && ` · R${TOURNAMENT_STATUS.round} Complete`}
+                  </span>
+                </div>
+                <div className="sc-total-box">
+                  <span className={`sc-total ${typeof entry.total === 'number' && entry.total < 0 ? 'under' : ''}`}>{formatScore(entry.total)}</span>
+                </div>
+              </div>
+
+              {pickedBy.length > 0 && (
+                <div className="sc-picked-by">
+                  <span className="sc-picked-label">Picked by:</span>
+                  {pickedBy.map(o => <span key={o.id} className={`lb-owner-chip ${o.id === 'luke' ? 'me' : ''}`}>{o.initials}</span>)}
+                </div>
+              )}
+
+              {/* Round scores summary */}
+              <div className="sc-rounds-summary">
+                {roundLabels.map((label, ri) => {
+                  const roundHoles = sc?.rounds?.[ri];
+                  const roundScore = roundHoles ? calcRoundScore(roundHoles) : null;
+                  const isActive = ri === activeRound;
+                  return (
+                    <div key={ri} className={`sc-round-pill ${roundScore !== null ? 'has-score' : ''} ${isActive ? 'active' : ''}`}>
+                      <span className="sc-round-label">{label}</span>
+                      <span className="sc-round-score">{roundScore !== null ? roundScore : '-'}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Hole-by-hole scorecards for each completed/active round */}
+              {sc?.rounds?.map((roundHoles, ri) => {
+                if (!roundHoles) return null;
+                const nines = calcNines(roundHoles);
+                const roundTotal = calcRoundScore(roundHoles);
+                const thruHole = roundHoles.filter(h => h !== null).length;
+
+                return (
+                  <div key={ri} className="sc-round-card">
+                    <div className="sc-round-title">
+                      <span>Round {ri + 1}</span>
+                      {thruHole === 18 ? (
+                        <span className="sc-round-complete">{roundTotal} ({roundTotal - AUGUSTA_PAR.total >= 0 ? '+' : ''}{roundTotal - AUGUSTA_PAR.total})</span>
+                      ) : (
+                        <span className="sc-round-thru">Thru {thruHole}</span>
+                      )}
+                    </div>
+
+                    {/* Front 9 */}
+                    <div className="sc-grid">
+                      <div className="sc-grid-row sc-grid-header">
+                        <span className="sc-grid-label">Hole</span>
+                        {AUGUSTA_HOLES.slice(0, 9).map(h => <span key={h.hole} className="sc-grid-cell">{h.hole}</span>)}
+                        <span className="sc-grid-cell sc-grid-total">Out</span>
+                      </div>
+                      <div className="sc-grid-row sc-grid-par">
+                        <span className="sc-grid-label">Par</span>
+                        {AUGUSTA_HOLES.slice(0, 9).map(h => <span key={h.hole} className="sc-grid-cell">{h.par}</span>)}
+                        <span className="sc-grid-cell sc-grid-total">{AUGUSTA_PAR.out}</span>
+                      </div>
+                      <div className="sc-grid-row sc-grid-scores">
+                        <span className="sc-grid-label">Score</span>
+                        {AUGUSTA_HOLES.slice(0, 9).map((h, hi) => {
+                          const s = roundHoles[hi];
+                          const diff = s !== null ? s - h.par : null;
+                          return (
+                            <span key={h.hole} className={`sc-grid-cell ${diff !== null ? (diff < -1 ? 'eagle' : diff < 0 ? 'birdie' : diff > 1 ? 'dbl-bogey' : diff > 0 ? 'bogey' : '') : ''}`}>
+                              {s !== null ? s : ''}
+                            </span>
+                          );
+                        })}
+                        <span className="sc-grid-cell sc-grid-total">{nines.out ?? ''}</span>
+                      </div>
+                    </div>
+
+                    {/* Back 9 */}
+                    <div className="sc-grid">
+                      <div className="sc-grid-row sc-grid-header">
+                        <span className="sc-grid-label">Hole</span>
+                        {AUGUSTA_HOLES.slice(9).map(h => <span key={h.hole} className="sc-grid-cell">{h.hole}</span>)}
+                        <span className="sc-grid-cell sc-grid-total">In</span>
+                      </div>
+                      <div className="sc-grid-row sc-grid-par">
+                        <span className="sc-grid-label">Par</span>
+                        {AUGUSTA_HOLES.slice(9).map(h => <span key={h.hole} className="sc-grid-cell">{h.par}</span>)}
+                        <span className="sc-grid-cell sc-grid-total">{AUGUSTA_PAR.in}</span>
+                      </div>
+                      <div className="sc-grid-row sc-grid-scores">
+                        <span className="sc-grid-label">Score</span>
+                        {AUGUSTA_HOLES.slice(9).map((h, hi) => {
+                          const s = roundHoles[9 + hi];
+                          const diff = s !== null ? s - h.par : null;
+                          return (
+                            <span key={h.hole} className={`sc-grid-cell ${diff !== null ? (diff < -1 ? 'eagle' : diff < 0 ? 'birdie' : diff > 1 ? 'dbl-bogey' : diff > 0 ? 'bogey' : '') : ''}`}>
+                              {s !== null ? s : ''}
+                            </span>
+                          );
+                        })}
+                        <span className="sc-grid-cell sc-grid-total">{nines.in_ ?? ''}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

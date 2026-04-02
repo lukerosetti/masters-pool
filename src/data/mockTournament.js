@@ -61,25 +61,54 @@ export const MOCK_LEADERBOARD = [
   { name: 'Nick Dunlap', pos: 'MC', total: +8, today: null, thru: null, r1: 77, r2: 75, r3: null, r4: null, status: 'cut', movement: null },
 ];
 
-// Mock pool with 4 players and their picks
+// Mock pool with 20 players and their picks (realistic overlap)
 export const MOCK_POOL_PLAYERS = [
-  {
-    id: 'luke', name: 'Luke', isCommissioner: true, locked: true,
-    picks: ['Scottie Scheffler', 'Tommy Fleetwood', 'Akshay Bhatia', 'Dustin Johnson', 'Kurt Kitayama', 'Tiger Woods']
-  },
-  {
-    id: 'nick', name: 'Nick', locked: true,
-    picks: ['Xander Schauffele', 'Shane Lowry', 'Cameron Young', 'Jordan Spieth', 'Tom Kim', 'Phil Mickelson']
-  },
-  {
-    id: 'brooks', name: 'Brooks', locked: true,
-    picks: ['Rory McIlroy', 'Sam Burns', 'Corey Conners', 'Adam Scott', 'Ryan Fox', 'Tiger Woods']
-  },
-  {
-    id: 'james', name: 'James', locked: true,
-    picks: ['Collin Morikawa', 'Justin Thomas', 'Jason Day', 'Cameron Smith', 'Ben Griffin', 'Phil Mickelson']
-  },
+  { id: 'luke', name: 'Luke', initials: 'LK', isCommissioner: true, locked: true,
+    picks: ['Scottie Scheffler', 'Tommy Fleetwood', 'Akshay Bhatia', 'Dustin Johnson', 'Kurt Kitayama', 'Tiger Woods'] },
+  { id: 'nick', name: 'Nick', initials: 'NK', locked: true,
+    picks: ['Xander Schauffele', 'Shane Lowry', 'Cameron Young', 'Jordan Spieth', 'Harris English', 'Phil Mickelson'] },
+  { id: 'brooks', name: 'Brooks', initials: 'BK', locked: true,
+    picks: ['Rory McIlroy', 'Sam Burns', 'Corey Conners', 'Adam Scott', 'Nick Dunlap', 'Tiger Woods'] },
+  { id: 'james', name: 'James', initials: 'JM', locked: true,
+    picks: ['Collin Morikawa', 'Justin Thomas', 'Jason Day', 'Cameron Smith', 'Justin Rose', 'Phil Mickelson'] },
+  { id: 'matt', name: 'Matt', initials: 'MT', locked: true,
+    picks: ['Scottie Scheffler', 'Hideki Matsuyama', 'Sahith Theegala', 'Jordan Spieth', 'Aaron Rai', 'Tiger Woods'] },
+  { id: 'chris', name: 'Chris', initials: 'CK', locked: true,
+    picks: ['Rory McIlroy', 'Patrick Cantlay', 'Matt Fitzpatrick', 'Dustin Johnson', 'Harris English', 'Phil Mickelson'] },
+  { id: 'dan', name: 'Dan', initials: 'DN', locked: true,
+    picks: ['Xander Schauffele', 'Viktor Hovland', 'Russell Henley', 'Adam Scott', 'Kurt Kitayama', 'Tiger Woods'] },
+  { id: 'mike', name: 'Mike', initials: 'MK', locked: true,
+    picks: ['Scottie Scheffler', 'Tommy Fleetwood', 'Keegan Bradley', 'Cameron Smith', 'Aaron Rai', 'Phil Mickelson'] },
+  { id: 'ryan', name: 'Ryan', initials: 'RN', locked: true,
+    picks: ['Collin Morikawa', 'Sam Burns', 'Wyndham Clark', 'Jordan Spieth', 'Nick Dunlap', 'Tiger Woods'] },
+  { id: 'tom', name: 'Tom', initials: 'TM', locked: true,
+    picks: ['Rory McIlroy', 'Shane Lowry', 'Robert MacIntyre', 'Dustin Johnson', 'Justin Rose', 'Phil Mickelson'] },
+  { id: 'joe', name: 'Joe', initials: 'JE', locked: true,
+    picks: ['Scottie Scheffler', 'Hideki Matsuyama', 'Akshay Bhatia', 'Adam Scott', 'Harris English', 'Tiger Woods'] },
+  { id: 'ben', name: 'Ben', initials: 'BN', locked: true,
+    picks: ['Xander Schauffele', 'Patrick Cantlay', 'Cameron Young', 'Cameron Smith', 'Kurt Kitayama', 'Phil Mickelson'] },
+  { id: 'alex', name: 'Alex', initials: 'AX', locked: true,
+    picks: ['Collin Morikawa', 'Viktor Hovland', 'Matt Fitzpatrick', 'Jordan Spieth', 'Aaron Rai', 'Tiger Woods'] },
+  { id: 'pete', name: 'Pete', initials: 'PT', locked: true,
+    picks: ['Rory McIlroy', 'Tommy Fleetwood', 'Sahith Theegala', 'Dustin Johnson', 'Nick Dunlap', 'Phil Mickelson'] },
+  { id: 'dave', name: 'Dave', initials: 'DV', locked: true,
+    picks: ['Scottie Scheffler', 'Sam Burns', 'Keegan Bradley', 'Adam Scott', 'Justin Rose', 'Tiger Woods'] },
+  { id: 'kyle', name: 'Kyle', initials: 'KL', locked: true,
+    picks: ['Xander Schauffele', 'Shane Lowry', 'Russell Henley', 'Cameron Smith', 'Harris English', 'Phil Mickelson'] },
+  { id: 'sean', name: 'Sean', initials: 'SN', locked: true,
+    picks: ['Collin Morikawa', 'Justin Thomas', 'Corey Conners', 'Jordan Spieth', 'Kurt Kitayama', 'Tiger Woods'] },
+  { id: 'will', name: 'Will', initials: 'WL', locked: true,
+    picks: ['Rory McIlroy', 'Patrick Cantlay', 'Wyndham Clark', 'Dustin Johnson', 'Aaron Rai', 'Phil Mickelson'] },
+  { id: 'jack', name: 'Jack', initials: 'JK', locked: true,
+    picks: ['Scottie Scheffler', 'Hideki Matsuyama', 'Robert MacIntyre', 'Adam Scott', 'Nick Dunlap', 'Tiger Woods'] },
+  { id: 'zach', name: 'Zach', initials: 'ZH', locked: true,
+    picks: ['Xander Schauffele', 'Viktor Hovland', 'Matt Fitzpatrick', 'Cameron Smith', 'Justin Rose', 'Phil Mickelson'] },
 ];
+
+// Build a lookup: golfer name -> array of { id, initials } who picked them
+export const getPickedBy = (golferName) => {
+  return MOCK_POOL_PLAYERS.filter(p => p.picks.includes(golferName)).map(p => ({ id: p.id, initials: p.initials, name: p.name }));
+};
 
 // Helper: get leaderboard entry for a golfer
 export const getGolferScore = (name) => MOCK_LEADERBOARD.find(g => g.name === name);
@@ -138,28 +167,99 @@ export const calculateStandings = (players) => {
   });
 };
 
-// Hole-by-hole mock for Scheffler's Round 3 (through 14 holes)
+// Augusta National hole data (par for each hole)
+export const AUGUSTA_HOLES = [
+  { hole: 1, par: 4, name: 'Tea Olive', yards: 445 },
+  { hole: 2, par: 5, name: 'Pink Dogwood', yards: 575 },
+  { hole: 3, par: 4, name: 'Flowering Peach', yards: 350 },
+  { hole: 4, par: 3, name: 'Flowering Crab Apple', yards: 240 },
+  { hole: 5, par: 4, name: 'Magnolia', yards: 495 },
+  { hole: 6, par: 3, name: 'Juniper', yards: 180 },
+  { hole: 7, par: 4, name: 'Pampas', yards: 450 },
+  { hole: 8, par: 5, name: 'Yellow Jasmine', yards: 570 },
+  { hole: 9, par: 4, name: 'Carolina Cherry', yards: 460 },
+  { hole: 10, par: 4, name: 'Camellia', yards: 495 },
+  { hole: 11, par: 4, name: 'White Dogwood', yards: 520 },
+  { hole: 12, par: 3, name: 'Golden Bell', yards: 155 },
+  { hole: 13, par: 5, name: 'Azalea', yards: 510 },
+  { hole: 14, par: 4, name: 'Chinese Fir', yards: 440 },
+  { hole: 15, par: 5, name: 'Firethorn', yards: 530 },
+  { hole: 16, par: 3, name: 'Redbud', yards: 170 },
+  { hole: 17, par: 4, name: 'Nandina', yards: 440 },
+  { hole: 18, par: 4, name: 'Holly', yards: 465 },
+];
+export const AUGUSTA_PAR = { out: 36, in: 36, total: 72 };
+
+// Multi-round scorecards (completed rounds have 18 holes, current round may be partial)
 export const MOCK_SCORECARD = {
   'Scottie Scheffler': {
-    round: 3,
-    holes: [
-      { hole: 1, par: 4, score: 4, name: 'Tea Olive' },
-      { hole: 2, par: 5, score: 4, name: 'Pink Dogwood' },
-      { hole: 3, par: 4, score: 3, name: 'Flowering Peach' },
-      { hole: 4, par: 3, score: 3, name: 'Flowering Crab Apple' },
-      { hole: 5, par: 4, score: 4, name: 'Magnolia' },
-      { hole: 6, par: 3, score: 3, name: 'Juniper' },
-      { hole: 7, par: 4, score: 4, name: 'Pampas' },
-      { hole: 8, par: 5, score: 4, name: 'Yellow Jasmine' },
-      { hole: 9, par: 4, score: 4, name: 'Carolina Cherry' },
-      { hole: 10, par: 4, score: 3, name: 'Camellia' },
-      { hole: 11, par: 4, score: 4, name: 'White Dogwood' },
-      { hole: 12, par: 3, score: 2, name: 'Golden Bell' },
-      { hole: 13, par: 5, score: 4, name: 'Azalea' },
-      { hole: 14, par: 4, score: 4, name: 'Chinese Fir' },
-    ],
-    out: 33,
-    in: null, // still playing
-    total: null,
-  }
+    rounds: [
+      // R1: 66 (-6)
+      [4,4,4,3,4,3,4,4,4, 3,4,3,4,3,5,3,3,4],
+      // R2: 67 (-5)
+      [4,4,3,3,4,3,4,5,4, 4,4,3,4,4,4,3,4,4],
+      // R3: through 14 (-5 today)
+      [4,4,3,3,4,3,4,4,4, 3,4,2,4,4,null,null,null,null],
+      // R4: not started
+      null,
+    ]
+  },
+  'Tommy Fleetwood': {
+    rounds: [
+      [4,5,4,3,4,3,4,4,4, 4,4,3,4,4,5,3,4,5],
+      [4,4,4,3,4,3,4,5,4, 3,4,3,5,4,5,3,4,4],
+      [4,4,4,3,4,3,4,5,4, 3,4,3,4,4,null,null,null,null],
+      null,
+    ]
+  },
+  'Akshay Bhatia': {
+    rounds: [
+      [4,5,4,3,4,3,5,5,4, 4,4,3,5,4,5,3,4,4],
+      [4,5,4,3,4,3,4,5,4, 4,4,3,5,4,5,3,4,4],
+      [4,5,4,3,4,4,4,5,4, 4,4,3,5,4,5,3,4,3],
+      null,
+    ]
+  },
+  'Dustin Johnson': {
+    rounds: [
+      [5,5,4,3,5,3,4,5,4, 4,5,3,5,4,5,3,4,4],
+      [4,5,4,3,5,3,4,5,4, 4,4,3,5,4,5,3,5,4],
+      [4,5,4,3,4,3,4,5,4, 4,5,3,null,null,null,null,null,null],
+      null,
+    ]
+  },
+  'Tiger Woods': {
+    rounds: [
+      [4,5,4,4,4,3,5,5,4, 4,5,3,5,4,5,4,4,4],
+      [4,5,4,3,5,4,5,5,4, 4,4,3,5,5,5,3,4,4],
+      [5,5,4,4,5,3,5,5,4, 4,5,4,5,4,5,3,4,4],
+      null,
+    ]
+  },
+  'Kurt Kitayama': {
+    rounds: [
+      [5,5,4,3,5,3,5,5,4, 4,5,3,5,5,5,3,4,4],
+      [4,5,5,3,5,4,4,5,4, 4,5,3,5,4,5,4,5,4],
+      null, null, // missed cut
+    ]
+  },
+};
+
+// Helper to calculate round score from hole scores
+export const calcRoundScore = (holes) => {
+  if (!holes) return null;
+  const played = holes.filter(h => h !== null);
+  if (played.length === 0) return null;
+  return played.reduce((sum, s) => sum + s, 0);
+};
+
+// Helper to get front 9 / back 9 scores
+export const calcNines = (holes) => {
+  if (!holes) return { out: null, in_: null };
+  const front = holes.slice(0, 9).filter(h => h !== null);
+  const back = holes.slice(9).filter(h => h !== null);
+  return {
+    out: front.length === 9 ? front.reduce((s, h) => s + h, 0) : (front.length > 0 ? front.reduce((s, h) => s + h, 0) : null),
+    in_: back.length === 9 ? back.reduce((s, h) => s + h, 0) : (back.length > 0 ? back.reduce((s, h) => s + h, 0) : null),
+  };
 };
