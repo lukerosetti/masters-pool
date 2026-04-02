@@ -1,38 +1,143 @@
-.App {
-  text-align: center;
+/* ═══ Masters Pool — Augusta Theme ═══ */
+:root {
+  --masters-green: #006747;
+  --masters-dark: #004D35;
+  --masters-gold: #D4AF37;
+  --masters-cream: #FFF8E7;
+  --masters-white: #FFFFFF;
+  --masters-light: #F5F5F0;
+  --masters-text: #1A1A1A;
+  --masters-text2: #6B7280;
+  --masters-border: #E5E7EB;
+  --masters-red: #DC2626;
+  --masters-card: #FFFFFF;
+  --masters-bg: #F0F2EC;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Georgia', 'Times New Roman', serif; background: var(--masters-bg); color: var(--masters-text); -webkit-font-smoothing: antialiased; }
+input, button { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
+.app { max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--masters-white); }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
+/* ─── Home Screen ─── */
+.home-screen { display: flex; flex-direction: column; align-items: center; padding: 60px 24px 40px; text-align: center; background: linear-gradient(180deg, var(--masters-green) 0%, var(--masters-dark) 40%, var(--masters-white) 100%); min-height: 100vh; }
+.home-logo { margin-bottom: 20px; }
+.masters-badge { width: 80px; height: 80px; border-radius: 50%; background: var(--masters-gold); color: var(--masters-green); font-size: 40px; font-weight: 900; font-family: Georgia, serif; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(212,175,55,0.4); border: 3px solid rgba(255,255,255,0.3); }
+.home-title { font-size: 32px; font-weight: 700; color: var(--masters-white); margin-bottom: 4px; font-family: Georgia, serif; letter-spacing: 0.5px; }
+.home-subtitle { font-size: 14px; color: rgba(255,255,255,0.7); margin-bottom: 40px; font-style: italic; }
+.home-actions { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 300px; margin-bottom: 50px; }
+.btn-primary { padding: 16px; border-radius: 12px; border: none; background: var(--masters-gold); color: var(--masters-green); font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: var(--shadow-md); letter-spacing: 0.5px; transition: all 0.2s; }
+.btn-primary:active { transform: scale(0.97); }
+.btn-primary:disabled { opacity: 0.5; }
+.btn-secondary { padding: 16px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.4); background: transparent; color: var(--masters-white); font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-secondary:active { background: rgba(255,255,255,0.1); }
 
-.App-link {
-  color: #61dafb;
-}
+.home-info { background: var(--masters-white); border-radius: 16px; padding: 24px; width: 100%; max-width: 340px; box-shadow: var(--shadow-lg); }
+.home-info h3 { font-size: 16px; color: var(--masters-green); margin-bottom: 16px; font-family: Georgia, serif; }
+.info-steps { display: flex; flex-direction: column; gap: 12px; }
+.info-step { display: flex; align-items: center; gap: 12px; text-align: left; }
+.step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--masters-green); color: white; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.info-step span:last-child { font-size: 14px; color: var(--masters-text2); }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* ─── Form Screens ─── */
+.form-screen { padding: 24px; max-width: 400px; margin: 0 auto; }
+.back-btn { background: none; border: none; color: var(--masters-green); font-size: 16px; font-weight: 600; cursor: pointer; padding: 8px 0; margin-bottom: 16px; }
+.form-screen h2 { font-size: 24px; font-family: Georgia, serif; color: var(--masters-green); margin-bottom: 20px; }
+.form-field { margin-bottom: 16px; }
+.form-field label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--masters-text2); margin-bottom: 6px; }
+.form-field input { width: 100%; padding: 14px 16px; border: 2px solid var(--masters-border); border-radius: 10px; font-size: 16px; background: var(--masters-white); color: var(--masters-text); outline: none; transition: border-color 0.2s; }
+.form-field input:focus { border-color: var(--masters-green); }
+.code-input { text-transform: uppercase; letter-spacing: 6px; text-align: center; font-size: 28px !important; font-weight: 700 !important; }
+.error-msg { color: var(--masters-red); font-size: 13px; margin: 8px 0; font-weight: 500; }
+
+/* ─── Pool Header ─── */
+.pool-header { background: var(--masters-green); color: white; padding: 16px 16px 12px; }
+.header-top { display: flex; align-items: center; gap: 10px; }
+.masters-badge-sm { width: 36px; height: 36px; border-radius: 50%; background: var(--masters-gold); color: var(--masters-green); font-size: 18px; font-weight: 900; font-family: Georgia, serif; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.header-info { flex: 1; }
+.header-info h1 { font-size: 18px; font-weight: 700; font-family: Georgia, serif; }
+.header-info p { font-size: 11px; opacity: 0.75; margin-top: 2px; }
+.share-btn { padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; font-size: 12px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
+
+/* ─── Tabs ─── */
+.pool-tabs { display: flex; background: var(--masters-white); border-bottom: 1px solid var(--masters-border); padding: 0 8px; position: sticky; top: 0; z-index: 10; }
+.pool-tabs button { flex: 1; padding: 12px 4px; border: none; background: none; font-size: 13px; font-weight: 600; color: var(--masters-text2); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+.pool-tabs button.active { color: var(--masters-green); border-bottom-color: var(--masters-green); }
+
+.pool-content { padding: 16px; }
+
+/* ─── My Team Card ─── */
+.my-team-card { background: var(--masters-white); border: 2px solid var(--masters-green); border-radius: 14px; padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
+.my-team-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.my-team-header h3 { font-size: 16px; font-family: Georgia, serif; color: var(--masters-green); }
+.locked-badge { font-size: 10px; font-weight: 700; color: var(--masters-gold); background: rgba(212,175,55,0.15); padding: 3px 10px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.my-team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.my-team-slot { display: flex; flex-direction: column; align-items: center; padding: 10px 4px; border-radius: 8px; background: var(--masters-bg); border: 1px dashed var(--masters-border); }
+.my-team-slot.filled { background: rgba(0,103,71,0.08); border: 1px solid var(--masters-green); }
+.slot-pod { font-size: 10px; font-weight: 800; color: var(--masters-green); margin-bottom: 2px; }
+.slot-name { font-size: 12px; font-weight: 600; color: var(--masters-text); }
+.slot-empty { font-size: 12px; color: var(--masters-text2); }
+.btn-lock { width: 100%; margin-top: 12px; padding: 14px; border-radius: 10px; border: none; background: var(--masters-gold); color: var(--masters-green); font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: var(--shadow-sm); }
+.locked-msg { text-align: center; color: var(--masters-green); font-size: 13px; margin-top: 10px; font-style: italic; }
+
+/* ─── Pod Tabs ─── */
+.pod-tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; }
+.pod-tab { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 14px; border-radius: 10px; border: 2px solid var(--masters-border); background: var(--masters-white); cursor: pointer; transition: all 0.2s; flex-shrink: 0; position: relative; }
+.pod-tab.active { border-color: var(--masters-green); background: rgba(0,103,71,0.06); }
+.pod-tab.picked { border-color: var(--masters-gold); }
+.pod-letter { font-size: 16px; font-weight: 800; color: var(--masters-green); }
+.pod-check { font-size: 10px; color: var(--masters-gold); position: absolute; top: 2px; right: 4px; }
+.pod-info { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+.pod-info h3 { font-size: 16px; font-family: Georgia, serif; color: var(--masters-green); }
+.pod-info span { font-size: 12px; color: var(--masters-text2); }
+
+/* ─── Golfer Cards ─── */
+.golfer-list { display: flex; flex-direction: column; gap: 6px; }
+.golfer-card { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 10px; border: 2px solid var(--masters-border); background: var(--masters-white); cursor: pointer; transition: all 0.2s; }
+.golfer-card:active { transform: scale(0.98); }
+.golfer-card.selected { border-color: var(--masters-green); background: rgba(0,103,71,0.06); box-shadow: var(--shadow-sm); }
+.golfer-rank { font-size: 12px; font-weight: 700; color: var(--masters-text2); min-width: 28px; text-align: center; }
+.golfer-flag { font-size: 20px; }
+.golfer-info { flex: 1; }
+.golfer-name { font-size: 15px; font-weight: 600; color: var(--masters-text); display: block; }
+.golfer-meta { font-size: 11px; color: var(--masters-text2); display: flex; gap: 8px; }
+.golfer-meta .mw { color: var(--masters-green); font-weight: 600; }
+.golfer-check { width: 24px; height: 24px; border-radius: 50%; background: var(--masters-green); color: white; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+/* ─── Standings ─── */
+.standings-tab h3, .players-tab h3, .rules-tab h3 { font-size: 18px; font-family: Georgia, serif; color: var(--masters-green); margin-bottom: 4px; }
+.standings-sub { font-size: 12px; color: var(--masters-text2); margin-bottom: 16px; }
+.standing-row { display: flex; align-items: center; gap: 10px; padding: 14px 12px; border-radius: 10px; background: var(--masters-white); border: 1px solid var(--masters-border); margin-bottom: 6px; }
+.standing-row.me { border-color: var(--masters-green); background: rgba(0,103,71,0.04); }
+.standing-rank { font-size: 18px; font-weight: 800; color: var(--masters-green); min-width: 24px; text-align: center; font-family: Georgia, serif; }
+.standing-info { flex: 1; }
+.standing-name { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.standing-status { font-size: 11px; color: var(--masters-text2); }
+.standing-score { font-size: 20px; font-weight: 800; color: var(--masters-green); font-family: Georgia, serif; }
+.tag { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(0,103,71,0.1); color: var(--masters-green); }
+.me-tag { background: rgba(212,175,55,0.15); color: var(--masters-gold); }
+
+/* ─── Players Tab ─── */
+.member-card { padding: 14px; border-radius: 10px; border: 1px solid var(--masters-border); background: var(--masters-white); margin-bottom: 8px; }
+.member-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.member-name { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.member-status { font-size: 11px; color: var(--masters-text2); }
+.member-status.locked { color: var(--masters-green); font-weight: 600; }
+.member-picks { display: flex; flex-wrap: wrap; gap: 6px; }
+.pick-chip { font-size: 12px; padding: 4px 8px; border-radius: 6px; background: var(--masters-bg); border: 1px solid var(--masters-border); }
+
+/* ─── Rules Tab ─── */
+.rule-block { margin-bottom: 20px; }
+.rule-block h4 { font-size: 14px; font-weight: 700; color: var(--masters-green); margin-bottom: 8px; font-family: Georgia, serif; }
+.rule-block ul, .rule-block ol { padding-left: 20px; }
+.rule-block li { font-size: 14px; color: var(--masters-text); margin-bottom: 6px; line-height: 1.5; }
+.btn-leave { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--masters-red); background: transparent; color: var(--masters-red); font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 20px; }
+
+/* ─── Mobile Safe Areas ─── */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .pool-header { padding-top: calc(16px + env(safe-area-inset-top)); }
 }
