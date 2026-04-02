@@ -137,6 +137,79 @@ input, button { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
 .rule-block li { font-size: 14px; color: var(--masters-text); margin-bottom: 6px; line-height: 1.5; }
 .btn-leave { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--masters-red); background: transparent; color: var(--masters-red); font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 20px; }
 
+/* ─── Tournament Status Bar ─── */
+.tourney-bar { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--masters-dark); color: rgba(255,255,255,0.9); font-size: 12px; }
+.tourney-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+.tourney-round { flex: 1; font-weight: 600; }
+.tourney-cut { font-weight: 500; opacity: 0.7; }
+
+/* ─── My Team Live Tracker ─── */
+.myteam-summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+.myteam-rank-box, .myteam-score-box, .myteam-status-box { text-align: center; padding: 16px 8px; border-radius: 12px; background: var(--masters-white); border: 1px solid var(--masters-border); }
+.myteam-pos { font-size: 32px; font-weight: 900; color: var(--masters-green); font-family: Georgia, serif; display: block; }
+.myteam-total { font-size: 32px; font-weight: 900; color: var(--masters-green); font-family: Georgia, serif; display: block; }
+.myteam-cut-count { font-size: 32px; font-weight: 900; color: var(--masters-green); font-family: Georgia, serif; display: block; }
+.myteam-pos-label, .myteam-score-label, .myteam-cut-label { font-size: 10px; color: var(--masters-text2); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+.section-title { font-size: 13px; font-weight: 700; color: var(--masters-green); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-family: -apple-system, sans-serif; }
+.bench-title { margin-top: 16px; opacity: 0.5; }
+
+/* Live golfer card */
+.live-golfer-card { display: flex; align-items: center; gap: 8px; padding: 12px; border-radius: 10px; background: var(--masters-white); border: 1px solid var(--masters-border); margin-bottom: 6px; cursor: pointer; transition: all 0.2s; }
+.live-golfer-card:active { transform: scale(0.98); }
+.live-golfer-card.on-course { border-left: 3px solid var(--masters-green); }
+.live-golfer-card.bench { opacity: 0.6; }
+.live-golfer-card.cut { opacity: 0.4; text-decoration: line-through; }
+.live-golfer-pos { font-size: 13px; font-weight: 800; color: var(--masters-green); min-width: 28px; text-align: center; font-family: Georgia, serif; }
+.live-golfer-flag { font-size: 18px; }
+.live-golfer-info { flex: 1; }
+.live-golfer-name { font-size: 14px; font-weight: 600; display: block; }
+.live-golfer-round { font-size: 11px; color: var(--masters-text2); }
+.live-golfer-scores { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+.live-today { font-size: 12px; font-weight: 600; color: var(--masters-text2); }
+.live-today.under { color: #dc2626; }
+.live-today.over { color: var(--masters-text2); }
+.live-total { font-size: 16px; font-weight: 800; font-family: Georgia, serif; }
+.live-total.under { color: #dc2626; }
+.live-total.over { color: var(--masters-text2); }
+.live-total.dim { opacity: 0.5; font-size: 14px; }
+
+/* ─── Leaderboard ─── */
+.leaderboard-tab { margin: 0 -16px; }
+.lb-header-row { display: flex; align-items: center; padding: 8px 12px; background: var(--masters-green); color: rgba(255,255,255,0.8); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; position: sticky; top: 41px; z-index: 5; }
+.lb-h-pos { width: 36px; text-align: center; }
+.lb-h-player { flex: 1; }
+.lb-h-today { width: 44px; text-align: center; }
+.lb-h-thru { width: 36px; text-align: center; }
+.lb-h-total { width: 44px; text-align: right; }
+
+.lb-row { display: flex; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--masters-border); font-size: 13px; cursor: pointer; transition: background 0.15s; }
+.lb-row:active { background: rgba(0,103,71,0.04); }
+.lb-row.active-row { background: rgba(0,103,71,0.03); }
+.lb-row.cut-row { opacity: 0.35; }
+.lb-row.my-pick { background: rgba(212,175,55,0.08); border-left: 3px solid var(--masters-gold); }
+.lb-pos { width: 36px; text-align: center; font-weight: 800; color: var(--masters-green); font-family: Georgia, serif; }
+.lb-pos.mov-up { color: #16a34a; }
+.lb-pos.mov-down { color: #dc2626; }
+.lb-player { flex: 1; display: flex; align-items: center; gap: 6px; }
+.lb-flag { font-size: 16px; }
+.lb-name { font-weight: 600; }
+.lb-mine-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--masters-gold); }
+.lb-today { width: 44px; text-align: center; font-weight: 600; }
+.lb-today.under { color: #dc2626; }
+.lb-today.over { color: var(--masters-text2); }
+.lb-thru { width: 36px; text-align: center; font-size: 11px; color: var(--masters-text2); }
+.lb-total { width: 44px; text-align: right; font-weight: 800; font-family: Georgia, serif; }
+.lb-total.under { color: #dc2626; }
+.lb-total.over { color: var(--masters-text2); }
+
+/* Standings enhancements */
+.standing-row.eliminated { opacity: 0.4; }
+.standing-detail { font-size: 11px; color: var(--masters-text2); display: flex; align-items: center; gap: 6px; }
+.leader-badge { font-size: 9px; font-weight: 700; color: var(--masters-gold); background: rgba(212,175,55,0.15); padding: 1px 6px; border-radius: 4px; }
+.elim-score { color: var(--masters-red); }
+.cut-chip { opacity: 0.4; text-decoration: line-through; }
+
 /* ─── Mobile Safe Areas ─── */
 @supports (padding-top: env(safe-area-inset-top)) {
   .pool-header { padding-top: calc(16px + env(safe-area-inset-top)); }
