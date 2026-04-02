@@ -55,7 +55,7 @@ input, button { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
 .error-msg { color: var(--masters-red); font-size: 13px; margin: 8px 0; font-weight: 500; }
 
 /* ─── Pool Header ─── */
-.pool-header { background: var(--masters-green); color: white; padding: 16px 16px 12px; }
+.pool-header { background: rgba(0,103,71,0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: white; padding: 16px 16px 12px; position: sticky; top: 0; z-index: 20; }
 .header-top { display: flex; align-items: center; gap: 10px; }
 .masters-badge-sm { width: 36px; height: 36px; border-radius: 50%; background: var(--masters-gold); color: var(--masters-green); font-size: 18px; font-weight: 900; font-family: Georgia, serif; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .header-info { flex: 1; }
@@ -64,7 +64,7 @@ input, button { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
 .share-btn { padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; font-size: 12px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
 
 /* ─── Tabs ─── */
-.pool-tabs { display: flex; background: var(--masters-white); border-bottom: 1px solid var(--masters-border); padding: 0 8px; position: sticky; top: 0; z-index: 10; }
+.pool-tabs { display: flex; background: rgba(255,255,255,0.92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--masters-border); padding: 0 8px; position: sticky; top: 65px; z-index: 10; }
 .pool-tabs button { flex: 1; padding: 12px 4px; border: none; background: none; font-size: 13px; font-weight: 600; color: var(--masters-text2); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
 .pool-tabs button.active { color: var(--masters-green); border-bottom-color: var(--masters-green); }
 
@@ -264,6 +264,94 @@ input, button { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
 .sc-grid-cell.eagle { background: rgba(220,38,38,0.2); color: #dc2626; border-radius: 50%; font-weight: 900; }
 .sc-grid-cell.bogey { background: rgba(0,0,0,0.06); color: var(--masters-text2); }
 .sc-grid-cell.dbl-bogey { background: rgba(0,0,0,0.1); color: var(--masters-text2); }
+
+/* ─── Pull-to-Refresh ─── */
+.ptr-indicator { display: flex; align-items: center; justify-content: center; overflow: hidden; transition: height 0.2s; }
+.ptr-indicator:not(.visible) { height: 0 !important; }
+.ptr-spinner { font-size: 20px; color: var(--masters-green); transition: transform 0.3s; }
+.ptr-spinner.spinning { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── Bottom Sheet (Scorecard) ─── */
+.sc-overlay { animation: fadeIn 0.2s ease; }
+.sc-modal { animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1); transition: transform 0.2s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.sc-drag-handle { display: flex; justify-content: center; padding: 8px 0 4px; cursor: grab; }
+.sc-drag-bar { width: 36px; height: 4px; border-radius: 2px; background: var(--masters-border); }
+
+/* ─── Card Press States ─── */
+.live-golfer-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.live-golfer-card:active { transform: scale(0.97); box-shadow: none; }
+.lb-row { transition: background 0.15s, transform 0.1s; }
+.lb-row:active { transform: scale(0.99); }
+.standing-row { transition: transform 0.1s; }
+.standing-row:active { transform: scale(0.98); }
+.golfer-card { transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s; }
+.golfer-card:active { transform: scale(0.97); }
+
+/* ─── Position Movement Arrows ─── */
+.lb-pos.mov-up::after { content: '\\25B2'; font-size: 7px; color: #16a34a; margin-left: 2px; vertical-align: super; }
+.lb-pos.mov-down::after { content: '\\25BC'; font-size: 7px; color: #dc2626; margin-left: 2px; vertical-align: super; }
+
+/* ─── Score Change Animation ─── */
+@keyframes scorePulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); color: var(--masters-gold); } 100% { transform: scale(1); } }
+.score-changed { animation: scorePulse 0.6s ease; }
+.lb-total, .live-total { transition: all 0.3s ease; }
+
+/* ─── Skeleton Loading ─── */
+.skeleton { background: linear-gradient(90deg, var(--masters-border) 25%, #f0f0f0 50%, var(--masters-border) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.skeleton-card { height: 64px; margin-bottom: 6px; border-radius: 10px; }
+.skeleton-header { height: 80px; margin-bottom: 12px; border-radius: 12px; }
+.skeleton-row { height: 40px; margin-bottom: 4px; }
+
+/* ─── Subtle Background Texture ─── */
+.pool-content { position: relative; }
+.pool-content::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.015; z-index: 0;
+  background-image: radial-gradient(circle at 1px 1px, var(--masters-green) 1px, transparent 0);
+  background-size: 20px 20px;
+}
+.pool-content > * { position: relative; z-index: 1; }
+
+/* ─── Tab Swipe Indicator ─── */
+.pool-tabs button { position: relative; transition: all 0.2s; }
+.pool-tabs button::after { content: ''; position: absolute; bottom: 0; left: 50%; width: 0; height: 2px; background: var(--masters-green); transition: all 0.2s; transform: translateX(-50%); }
+.pool-tabs button.active::after { width: 60%; }
+
+/* ─── Dark Mode ─── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --masters-white: #1A1F16;
+    --masters-light: #222820;
+    --masters-text: #E8E8E0;
+    --masters-text2: #9CA3AF;
+    --masters-border: #2D3428;
+    --masters-card: #222820;
+    --masters-bg: #0F1410;
+    --masters-cream: #1A1F16;
+  }
+  body { background: var(--masters-bg); color: var(--masters-text); }
+  .app { background: var(--masters-bg); }
+  .pool-header { background: rgba(0,60,40,0.95); }
+  .pool-tabs { background: rgba(26,31,22,0.92); }
+  .sc-modal { background: var(--masters-card); }
+  .sc-grid-header { background: var(--masters-dark); }
+  .sc-grid-par { background: rgba(255,255,255,0.03); }
+  .sc-grid-total { background: rgba(255,255,255,0.05); }
+  .lb-header-row { background: var(--masters-dark); }
+  .lb-row.my-pick { background: rgba(212,175,55,0.08); }
+  .lb-row.active-row { background: rgba(0,103,71,0.06); }
+  .lb-owner-chip { background: rgba(255,255,255,0.08); color: var(--masters-text2); }
+  .lb-owner-chip.me { background: rgba(0,103,71,0.2); color: #4ade80; border-color: rgba(0,103,71,0.3); }
+  .skeleton { background: linear-gradient(90deg, #2D3428 25%, #333D30 50%, #2D3428 75%); background-size: 200% 100%; }
+  .golfer-card { background: var(--masters-card); border-color: var(--masters-border); }
+  .golfer-card.selected { background: rgba(0,103,71,0.15); border-color: var(--masters-green); }
+  .myteam-leader-box, .myteam-stat, .live-golfer-card, .standing-row, .member-card, .sc-round-pill { background: var(--masters-card); border-color: var(--masters-border); }
+  .home-info { background: var(--masters-card); }
+  input { background: var(--masters-card); border-color: var(--masters-border); color: var(--masters-text); }
+}
 
 /* ─── Mobile Safe Areas ─── */
 @supports (padding-top: env(safe-area-inset-top)) {

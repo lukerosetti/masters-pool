@@ -1,8 +1,17 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { GOLFERS, PODS, getGolfersInPod } from './data/golfers';
 import { subscribeToPool, submitPicks, joinPool, createPool, getPool } from './firebase';
 import { TOURNAMENT_STATUS, MOCK_LEADERBOARD, MOCK_POOL_PLAYERS, MOCK_SCORECARD, AUGUSTA_HOLES, AUGUSTA_PAR, getGolferScore, formatScore, calculateStandings, getPickedBy, calcRoundScore, calcNines } from './data/mockTournament';
 import './App.css';
+
+// Haptic feedback utility
+const haptic = (style = 'light') => {
+  try {
+    if (navigator.vibrate) {
+      navigator.vibrate(style === 'light' ? 10 : style === 'medium' ? 20 : 30);
+    }
+  } catch {}
+};
 
 function App() {
   const [screen, setScreen] = useState('home');
@@ -19,6 +28,36 @@ function App() {
   const [error, setError] = useState('');
   const [tab, setTab] = useState('picks');
   const [selectedGolfer, setSelectedGolfer] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Pull-to-refresh
+  const ptrRef = useRef(null);
+  const ptrStartY = useRef(0);
+  const [ptrPull, setPtrPull] = useState(0);
+  const handlePtrStart = (e) => { ptrStartY.current = e.touches[0].clientY; };
+  const handlePtrMove = (e) => {
+    const el = ptrRef.current;
+    if (!el || el.scrollTop > 0) return;
+    const pull = Math.max(0, e.touches[0].clientY - ptrStartY.current);
+    if (pull > 0) setPtrPull(Math.min(pull * 0.4, 60));
+  };
+  const handlePtrEnd = () => {
+    if (ptrPull > 40) {
+      setIsRefreshing(true);
+      haptic('medium');
+      // Simulate refresh (will be real ESPN fetch later)
+      setTimeout(() => { setIsRefreshing(false); setPtrPull(0); }, 1200);
+    } else {
+      setPtrPull(0);
+    }
+  };
+
+  // Tab switching with haptic
+  const switchTab = (t) => { haptic('light'); setTab(t); };
+
+  // Golfer card tap with haptic
+  const openGolfer = (name) => { haptic('light'); setSelectedGolfer(name); };
 
   // Use mock data for tournament preview (will be replaced by ESPN live)
   const useMockData = true;
@@ -204,15 +243,25 @@ function App() {
       )}
 
       <nav className="pool-tabs">
-        {tournamentActive && <button className={tab === 'myteam' ? 'active' : ''} onClick={() => setTab('myteam')}>My Team</button>}
-        {tournamentActive && <button className={tab === 'leaderboard' ? 'active' : ''} onClick={() => setTab('leaderboard')}>Board</button>}
-        <button className={tab === 'standings' ? 'active' : ''} onClick={() => setTab('standings')}>Standings</button>
-        {!tournamentActive && <button className={tab === 'picks' ? 'active' : ''} onClick={() => setTab('picks')}>Picks</button>}
-        <button className={tab === 'players' ? 'active' : ''} onClick={() => setTab('players')}>Players</button>
-        <button className={tab === 'rules' ? 'active' : ''} onClick={() => setTab('rules')}>Rules</button>
+        {tournamentActive && <button className={tab === 'myteam' ? 'active' : ''} onClick={() => switchTab('myteam')}>My Team</button>}
+        {tournamentActive && <button className={tab === 'leaderboard' ? 'active' : ''} onClick={() => switchTab('leaderboard')}>Board</button>}
+        <button className={tab === 'standings' ? 'active' : ''} onClick={() => switchTab('standings')}>Standings</button>
+        {!tournamentActive && <button className={tab === 'picks' ? 'active' : ''} onClick={() => switchTab('picks')}>Picks</button>}
+        <button className={tab === 'players' ? 'active' : ''} onClick={() => switchTab('players')}>Players</button>
+        <button className={tab === 'rules' ? 'active' : ''} onClick={() => switchTab('rules')}>Rules</button>
       </nav>
 
-      <main className="pool-content">
+      <main
+        className="pool-content"
+        ref={ptrRef}
+        onTouchStart={handlePtrStart}
+        onTouchMove={handlePtrMove}
+        onTouchEnd={handlePtrEnd}
+      >
+        {/* Pull-to-refresh indicator */}
+        <div className={`ptr-indicator ${ptrPull > 0 || isRefreshing ? 'visible' : ''}`} style={{ height: isRefreshing ? 40 : ptrPull }}>
+          <div className={`ptr-spinner ${isRefreshing ? 'spinning' : ''}`}>{isRefreshing ? '↻' : '↓'}</div>
+        </div>
 
         {/* ═══ MY TEAM — Live tracker ═══ */}
         {tab === 'myteam' && tournamentActive && (
@@ -246,7 +295,7 @@ function App() {
                     const golferData = GOLFERS.find(gl => gl.name === g.name);
                     const others = getPickedBy(g.name).filter(o => o.id !== 'luke');
                     return (
-                      <div key={g.name} className={`live-golfer-card ${g.status === 'active' ? 'on-course' : ''}`} onClick={() => setSelectedGolfer(g.name)}>
+                      <div key={g.name} className={`live-golfer-card ${g.status === 'active' ? 'on-course' : ''}`} onClick={() => openGolfer(g.name)}>
                         <div className="live-golfer-pos">{typeof entry?.pos === 'number' ? `T${entry.pos}` : entry?.pos}</div>
                         <div className="live-golfer-flag">{golferData?.flag}</div>
                         <div className="live-golfer-info">
@@ -279,7 +328,7 @@ function App() {
                         const entry = getGolferScore(g.name);
                         const golferData = GOLFERS.find(gl => gl.name === g.name);
                         return (
-                          <div key={g.name} className={`live-golfer-card bench ${g.status === 'cut' ? 'cut' : ''}`} onClick={() => setSelectedGolfer(g.name)}>
+                          <div key={g.name} className={`live-golfer-card bench ${g.status === 'cut' ? 'cut' : ''}`} onClick={() => openGolfer(g.name)}>
                             <div className="live-golfer-pos">{g.status === 'cut' ? 'MC' : typeof entry?.pos === 'number' ? `T${entry.pos}` : entry?.pos}</div>
                             <div className="live-golfer-flag">{golferData?.flag}</div>
                             <div className="live-golfer-info">
@@ -465,6 +514,23 @@ function App() {
         return (
           <div className="sc-overlay" onClick={() => setSelectedGolfer(null)}>
             <div className="sc-modal" onClick={e => e.stopPropagation()}>
+              <div className="sc-drag-handle" onTouchStart={e => {
+                const startY = e.touches[0].clientY;
+                const modal = e.currentTarget.parentElement;
+                const handleMove = (ev) => {
+                  const dy = ev.touches[0].clientY - startY;
+                  if (dy > 0) modal.style.transform = `translateY(${dy}px)`;
+                };
+                const handleEnd = (ev) => {
+                  const dy = ev.changedTouches[0].clientY - startY;
+                  modal.style.transform = '';
+                  if (dy > 100) setSelectedGolfer(null);
+                  document.removeEventListener('touchmove', handleMove);
+                  document.removeEventListener('touchend', handleEnd);
+                };
+                document.addEventListener('touchmove', handleMove, { passive: true });
+                document.addEventListener('touchend', handleEnd);
+              }}><div className="sc-drag-bar"></div></div>
               <button className="sc-close" onClick={() => setSelectedGolfer(null)}>&times;</button>
 
               <div className="sc-header">
