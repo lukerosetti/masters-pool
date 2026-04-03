@@ -204,7 +204,7 @@ function App() {
   };
 
   const handleShare = () => {
-    const url = 'https://masters.onrender.com';
+    const url = 'https://masters-yaz3.onrender.com';
     const text = `Join my Masters Pool!\n\nPool Code: ${poolId}\n\nOpen the link, tap "Join a Pool", and enter the code.`;
     if (navigator.share) navigator.share({ text, url }).catch(() => {});
     else navigator.clipboard?.writeText(`${text}\n${url}`);
@@ -348,7 +348,7 @@ function App() {
               Lock Pool Now (Removes Unlocked Players)
             </button>
             <button className="comm-btn-full" onClick={() => {
-              const url = 'https://masters.onrender.com';
+              const url = 'https://masters-yaz3.onrender.com';
               const text = `Picks lock ${poolDeadline ? 'at ' + new Date(poolDeadline).toLocaleString('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : 'soon'}! Get your Masters picks in.\n\nPool Code: ${poolId}`;
               if (navigator.share) { navigator.share({ text, url }); } else { navigator.clipboard?.writeText(`${text}\n${url}`); }
             }}>
