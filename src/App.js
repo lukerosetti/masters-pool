@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { GOLFERS, PODS, getGolfersInPod } from './data/golfers';
-import { subscribeToPool, submitPicks, joinPool, createPool, getPool } from './firebase';
+import { subscribeToPool, submitPicks, joinPool, createPool, getPool, setPoolDeadline, removePlayer, lockPool } from './firebase';
 import { TOURNAMENT_STATUS, MOCK_LEADERBOARD, MOCK_POOL_PLAYERS, MOCK_SCORECARD, AUGUSTA_HOLES, AUGUSTA_PAR, getGolferScore, formatScore, calculateStandings, getPickedBy, calcRoundScore, calcNines } from './data/mockTournament';
 import './App.css';
 
@@ -30,6 +30,61 @@ function App() {
   const [selectedGolfer, setSelectedGolfer] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showCommTools, setShowCommTools] = useState(false);
+  const [deadlineInput, setDeadlineInput] = useState('');
+  const [deadlineCountdown, setDeadlineCountdown] = useState(null);
+
+  // Commissioner check
+  const isCommissioner = poolData?.players?.[playerId]?.isCommissioner === true;
+  const poolDeadline = poolData?.deadline || null;
+  const isPoolLocked = poolData?.locked === true;
+
+  // Deadline countdown timer
+  useEffect(() => {
+    if (!poolDeadline) { setDeadlineCountdown(null); return; }
+    const tick = () => {
+      const remaining = Math.max(0, poolDeadline - Date.now());
+      setDeadlineCountdown(remaining);
+      // Auto-lock when deadline hits (commissioner's browser triggers it)
+      if (remaining <= 0 && isCommissioner && !isPoolLocked) {
+        lockPool(poolId);
+      }
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [poolDeadline, isCommissioner, isPoolLocked, poolId]);
+
+  const formatDeadlineCountdown = (ms) => {
+    if (!ms || ms <= 0) return 'Picks locked';
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    const s = Math.floor((ms % 60000) / 1000);
+    if (h > 24) return `${Math.floor(h / 24)}d ${h % 24}h`;
+    if (h > 0) return `${h}h ${m}m`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
+  };
+
+  const handleSetDeadline = async () => {
+    if (!deadlineInput) return;
+    const ts = new Date(deadlineInput).getTime();
+    if (ts <= Date.now()) { setError('Deadline must be in the future'); return; }
+    await setPoolDeadline(poolId, ts);
+    setDeadlineInput('');
+  };
+
+  const handleRemovePlayer = async (pid) => {
+    if (!window.confirm('Remove this player from the pool?')) return;
+    await removePlayer(poolId, pid);
+    haptic('medium');
+  };
+
+  const handleLockPoolEarly = async () => {
+    if (!window.confirm('Lock the pool now? All unlocked players will be removed.')) return;
+    await lockPool(poolId);
+    haptic('medium');
+  };
 
   // Pull-to-refresh
   const ptrRef = useRef(null);
@@ -129,6 +184,8 @@ function App() {
 
   const handleSelectGolfer = (podId, golferName) => {
     if (poolData?.players?.[playerId]?.locked) return;
+    if (isPoolLocked) return;
+    if (poolDeadline && Date.now() > poolDeadline) return;
     setMyPicks(prev => prev[podId] === golferName ? (() => { const n = {...prev}; delete n[podId]; return n; })() : { ...prev, [podId]: golferName });
   };
 
@@ -230,8 +287,74 @@ function App() {
             <p>{poolId} · {players.length} player{players.length !== 1 ? 's' : ''} · {lockedCount} locked</p>
           </div>
           <button className="share-btn" onClick={handleShare}>Share</button>
+          {isCommissioner && <button className="comm-toggle" onClick={() => setShowCommTools(!showCommTools)}>{showCommTools ? '\u2715' : '\u2699'}</button>}
         </div>
       </header>
+
+      {/* Deadline countdown banner */}
+      {poolDeadline && deadlineCountdown !== null && !isPoolLocked && (
+        <div className={`deadline-bar ${deadlineCountdown < 3600000 ? 'urgent' : ''}`}>
+          <span className="deadline-icon">{deadlineCountdown < 3600000 ? '\u23F0' : '\u{1F4C5}'}</span>
+          <span className="deadline-text">Picks lock in <strong>{formatDeadlineCountdown(deadlineCountdown)}</strong></span>
+        </div>
+      )}
+      {isPoolLocked && !tournamentActive && (
+        <div className="deadline-bar locked-bar">
+          <span className="deadline-icon">{'\u{1F512}'}</span>
+          <span className="deadline-text">Pool is locked. Picks are final.</span>
+        </div>
+      )}
+
+      {/* Commissioner toolbar */}
+      {showCommTools && isCommissioner && (
+        <div className="comm-toolbar">
+          <div className="comm-toolbar-header">Commissioner Tools</div>
+
+          {/* Deadline setting */}
+          <div className="comm-section">
+            <label className="comm-label">Pick Deadline</label>
+            {poolDeadline ? (
+              <div className="comm-deadline-info">
+                <span>{new Date(poolDeadline).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+                <button className="comm-btn-sm" onClick={() => setPoolDeadline(poolId, null)}>Remove</button>
+              </div>
+            ) : (
+              <div className="comm-deadline-set">
+                <input type="datetime-local" className="comm-input" value={deadlineInput} onChange={e => setDeadlineInput(e.target.value)} min={new Date().toISOString().slice(0, 16)} />
+                <button className="comm-btn" onClick={handleSetDeadline} disabled={!deadlineInput}>Set</button>
+              </div>
+            )}
+          </div>
+
+          {/* Player management */}
+          <div className="comm-section">
+            <label className="comm-label">Players ({players.length})</label>
+            <div className="comm-player-list">
+              {players.map(([id, data]) => (
+                <div key={id} className="comm-player-row">
+                  <span className={`comm-player-status ${data.locked ? 'locked' : 'pending'}`}>{data.locked ? '\u2713' : '\u25CB'}</span>
+                  <span className="comm-player-name">{data.name}</span>
+                  <span className="comm-player-info">{data.locked ? 'Locked' : 'Selecting'}</span>
+                  {!data.isCommissioner && <button className="comm-btn-kick" onClick={() => handleRemovePlayer(id)}>Remove</button>}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick actions */}
+          <div className="comm-section">
+            <button className="comm-btn-full warning" onClick={handleLockPoolEarly} disabled={isPoolLocked}>
+              Lock Pool Now (Removes Unlocked Players)
+            </button>
+            <button className="comm-btn-full" onClick={() => {
+              const text = `Picks lock ${poolDeadline ? 'at ' + new Date(poolDeadline).toLocaleString('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : 'soon'}! Get your Masters picks in:\nhttps://masters.onrender.com\nPool Code: ${poolId}`;
+              if (navigator.share) { navigator.share({ text }); } else { navigator.clipboard?.writeText(text); }
+            }}>
+              Send Reminder
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Tournament status bar */}
       {tournamentActive && (

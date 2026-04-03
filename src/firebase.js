@@ -42,7 +42,18 @@ export async function submitPicks(poolId, playerId, picks) {
 export async function joinPool(poolId, playerName) {
   const pool = await getPool(poolId);
   if (!pool) throw new Error('Pool not found');
+
+  // Check if deadline has passed
+  if (pool.deadline && Date.now() > pool.deadline) {
+    throw new Error('Pick deadline has passed. Pool is locked.');
+  }
+
   const players = pool.players || {};
+
+  // Check if this name already exists (rejoin)
+  const existing = Object.entries(players).find(([_, p]) => p.name?.toLowerCase() === playerName.toLowerCase());
+  if (existing) return existing[0]; // Return existing player ID
+
   const existingIds = Object.keys(players);
   const playerId = `player_${existingIds.length + 1}`;
   await update(ref(db, `golf-pools/${poolId}/players/${playerId}`), {
@@ -52,4 +63,33 @@ export async function joinPool(poolId, playerName) {
     joinedAt: Date.now()
   });
   return playerId;
+}
+
+// Commissioner functions
+export async function setPoolDeadline(poolId, deadline) {
+  await update(ref(db, `golf-pools/${poolId}`), { deadline });
+}
+
+export async function removePlayer(poolId, playerId) {
+  await set(ref(db, `golf-pools/${poolId}/players/${playerId}`), null);
+}
+
+export async function lockPool(poolId) {
+  // Remove all unlocked players and set pool as locked
+  const pool = await getPool(poolId);
+  if (!pool) return;
+  const players = pool.players || {};
+  const updates = {};
+  Object.entries(players).forEach(([id, data]) => {
+    if (!data.locked) {
+      updates[`players/${id}`] = null; // Remove unlocked players
+    }
+  });
+  updates['locked'] = true;
+  updates['lockedAt'] = Date.now();
+  await update(ref(db, `golf-pools/${poolId}`), updates);
+}
+
+export async function updatePoolSettings(poolId, settings) {
+  await update(ref(db, `golf-pools/${poolId}`), settings);
 }
