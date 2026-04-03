@@ -283,11 +283,14 @@ function App() {
     <div className="app">
       <div className="form-screen">
         <button className="back-btn" onClick={() => setScreen('home')}>&larr; Back</button>
-        <h2>Create Pool</h2>
-        <div className="form-field"><label>Pool Name</label><input type="text" placeholder="e.g. The Boys Masters Pool" value={createName} onChange={e => setCreateName(e.target.value)} maxLength={30} /></div>
-        <div className="form-field"><label>Your Name</label><input type="text" placeholder="e.g. Luke" value={commName} onChange={e => setCommName(e.target.value)} maxLength={20} /></div>
-        {error && <div className="error-msg">{error}</div>}
-        <button className="btn-primary" onClick={handleCreate} disabled={!createName.trim() || !commName.trim()}>Create Pool</button>
+        <div className="form-card">
+          <h2>Create Pool</h2>
+          <p className="form-subtitle">Set up your Masters pool</p>
+          <div className="form-field"><label>Pool Name</label><input type="text" placeholder="e.g. The Boys Masters Pool" value={createName} onChange={e => setCreateName(e.target.value)} maxLength={30} /></div>
+          <div className="form-field"><label>Your Name</label><input type="text" placeholder="e.g. Luke" value={commName} onChange={e => setCommName(e.target.value)} maxLength={20} /></div>
+          {error && <div className="error-msg">{error}</div>}
+          <button className="btn-primary" onClick={handleCreate} disabled={!createName.trim() || !commName.trim()}>Create Pool</button>
+        </div>
       </div>
     </div>
   );
@@ -301,9 +304,11 @@ function App() {
           else setScreen('home');
         }}>&larr; Back</button>
 
+        <div className="form-card">
         {!rejoinPlayers ? (
           <>
             <h2>Join Pool</h2>
+            <p className="form-subtitle">Enter your pool code</p>
             <div className="form-field"><label>Pool Code</label><input type="text" placeholder="XXXXX" value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} maxLength={6} className="code-input" onKeyDown={e => e.key === 'Enter' && handleLookupPool()} /></div>
             {error && <div className="error-msg">{error}</div>}
             <button className="btn-primary" onClick={handleLookupPool} disabled={!joinCode.trim()}>Find Pool</button>
@@ -334,6 +339,7 @@ function App() {
             <button className="btn-primary" onClick={handleJoinNew} disabled={!joinName.trim()}>Join as New Player</button>
           </>
         )}
+        </div>
       </div>
     </div>
   );

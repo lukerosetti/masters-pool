@@ -63,15 +63,41 @@ input, button { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
 .info-step span:last-child { font-size: 14px; color: var(--masters-text2); }
 
 /* ─── Form Screens ─── */
-.form-screen { padding: 24px; padding-top: calc(24px + env(safe-area-inset-top, 0)); padding-bottom: calc(24px + env(safe-area-inset-bottom, 0)); max-width: 400px; margin: 0 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; height: 100%; background: var(--masters-white); }
-.back-btn { background: none; border: none; color: var(--masters-green); font-size: 16px; font-weight: 600; cursor: pointer; padding: 8px 0; margin-bottom: 16px; min-height: 44px; display: flex; align-items: center; }
-.form-screen h2 { font-size: 24px; font-family: Georgia, serif; color: var(--masters-green); margin-bottom: 20px; }
+.form-screen {
+  padding: 24px;
+  padding-top: calc(24px + env(safe-area-inset-top, 0));
+  padding-bottom: calc(40px + env(safe-area-inset-bottom, 0));
+  max-width: 480px;
+  margin: 0 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  height: 100%;
+  background: linear-gradient(180deg, var(--masters-green) 0%, var(--masters-dark) 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.back-btn { background: none; border: none; color: rgba(255,255,255,0.8); font-size: 15px; font-weight: 600; cursor: pointer; padding: 8px 0; margin-bottom: 20px; min-height: 44px; display: flex; align-items: center; align-self: flex-start; }
+.form-card {
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 20px;
+  padding: 28px 24px;
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+}
+.form-card h2 { font-size: 24px; font-family: Georgia, serif; color: #fff; margin-bottom: 6px; text-align: center; }
+.form-card .form-subtitle { color: rgba(255,255,255,0.6); text-align: center; margin-bottom: 24px; }
 .form-field { margin-bottom: 16px; }
-.form-field label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--masters-text2); margin-bottom: 6px; }
-.form-field input { width: 100%; padding: 14px 16px; border: 2px solid var(--masters-border); border-radius: 10px; font-size: 16px; background: var(--masters-white); color: var(--masters-text); outline: none; transition: border-color 0.2s; }
-.form-field input:focus { border-color: var(--masters-green); }
+.form-field label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.5); margin-bottom: 6px; }
+.form-field input { width: 100%; padding: 14px 16px; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; font-size: 16px; background: rgba(255,255,255,0.08); color: #fff; outline: none; transition: border-color 0.2s; }
+.form-field input::placeholder { color: rgba(255,255,255,0.3); }
+.form-field input:focus { border-color: var(--masters-gold); background: rgba(255,255,255,0.12); }
 .code-input { text-transform: uppercase; letter-spacing: 6px; text-align: center; font-size: 28px !important; font-weight: 700 !important; }
-.error-msg { color: var(--masters-red); font-size: 13px; margin: 8px 0; font-weight: 500; }
+.error-msg { color: #fca5a5; font-size: 13px; margin: 8px 0; font-weight: 500; text-align: center; }
+.form-card .btn-primary { width: 100%; margin-top: 8px; }
 
 /* ─── Pool Header ─── */
 .pool-header { background: rgba(0,103,71,0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: white; padding: 16px 16px 12px; padding-top: calc(16px + env(safe-area-inset-top, 0)); flex-shrink: 0; z-index: 20; }
@@ -339,39 +365,6 @@ input, button { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
 .pool-tabs button::after { content: ''; position: absolute; bottom: 0; left: 50%; width: 0; height: 2px; background: var(--masters-green); transition: all 0.2s; transform: translateX(-50%); }
 .pool-tabs button.active::after { width: 60%; }
 
-/* ─── Dark Mode ─── */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --masters-white: #1A1F16;
-    --masters-light: #222820;
-    --masters-text: #E8E8E0;
-    --masters-text2: #9CA3AF;
-    --masters-border: #2D3428;
-    --masters-card: #222820;
-    --masters-bg: #0F1410;
-    --masters-cream: #1A1F16;
-  }
-  body { background: var(--masters-bg); color: var(--masters-text); }
-  .app { background: var(--masters-bg); }
-  .pool-header { background: rgba(0,60,40,0.95); }
-  .pool-tabs { background: rgba(26,31,22,0.92); }
-  .sc-modal { background: var(--masters-card); }
-  .sc-grid-header { background: var(--masters-dark); }
-  .sc-grid-par { background: rgba(255,255,255,0.03); }
-  .sc-grid-total { background: rgba(255,255,255,0.05); }
-  .lb-header-row { background: var(--masters-dark); }
-  .lb-row.my-pick { background: rgba(212,175,55,0.08); }
-  .lb-row.active-row { background: rgba(0,103,71,0.06); }
-  .lb-owner-chip { background: rgba(255,255,255,0.08); color: var(--masters-text2); }
-  .lb-owner-chip.me { background: rgba(0,103,71,0.2); color: #4ade80; border-color: rgba(0,103,71,0.3); }
-  .skeleton { background: linear-gradient(90deg, #2D3428 25%, #333D30 50%, #2D3428 75%); background-size: 200% 100%; }
-  .golfer-card { background: var(--masters-card); border-color: var(--masters-border); }
-  .golfer-card.selected { background: rgba(0,103,71,0.15); border-color: var(--masters-green); }
-  .myteam-leader-box, .myteam-stat, .live-golfer-card, .standing-row, .member-card, .sc-round-pill { background: var(--masters-card); border-color: var(--masters-border); }
-  .home-info { background: var(--masters-card); }
-  input { background: var(--masters-card); border-color: var(--masters-border); color: var(--masters-text); }
-}
-
 /* ─── Deadline Banner ─── */
 .deadline-bar { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--masters-gold); color: var(--masters-green); font-size: 13px; font-weight: 600; flex-shrink: 0; }
 .deadline-bar.urgent { background: #dc2626; color: white; animation: pulse 2s infinite; }
@@ -406,16 +399,16 @@ input, button { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
 /* ─── Rejoin Flow ─── */
 .form-subtitle { font-size: 13px; color: var(--masters-text2); margin-bottom: 20px; }
 .rejoin-section { margin-bottom: 16px; }
-.rejoin-label { font-size: 12px; font-weight: 600; color: var(--masters-text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: block; }
+.rejoin-label { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: block; }
 .rejoin-list { display: flex; flex-direction: column; gap: 6px; }
-.rejoin-player { display: flex; align-items: center; gap: 10px; padding: 14px 12px; border-radius: 10px; background: var(--masters-white); border: 1px solid var(--masters-border); cursor: pointer; transition: all 0.2s; text-align: left; }
-.rejoin-player:active { transform: scale(0.98); border-color: var(--masters-green); background: rgba(0,103,71,0.04); }
-.rejoin-name { font-size: 15px; font-weight: 600; flex: 1; }
-.rejoin-status { font-size: 11px; color: var(--masters-text2); }
+.rejoin-player { display: flex; align-items: center; gap: 10px; padding: 14px 12px; border-radius: 10px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); cursor: pointer; transition: all 0.2s; text-align: left; color: #fff; }
+.rejoin-player:active { transform: scale(0.98); border-color: var(--masters-gold); background: rgba(255,255,255,0.14); }
+.rejoin-name { font-size: 15px; font-weight: 600; flex: 1; color: #fff; }
+.rejoin-status { font-size: 11px; color: rgba(255,255,255,0.5); }
 .rejoin-comm { font-size: 9px; font-weight: 700; color: var(--masters-gold); background: rgba(212,175,55,0.15); padding: 2px 6px; border-radius: 4px; }
 .rejoin-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
-.rejoin-divider::before, .rejoin-divider::after { content: ''; flex: 1; height: 1px; background: var(--masters-border); }
-.rejoin-divider span { font-size: 12px; color: var(--masters-text2); white-space: nowrap; }
+.rejoin-divider::before, .rejoin-divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.15); }
+.rejoin-divider span { font-size: 12px; color: rgba(255,255,255,0.4); white-space: nowrap; }
 .comm-btn-full:disabled { opacity: 0.4; }
 
 /* ─── Mobile Touch Targets ─── */
