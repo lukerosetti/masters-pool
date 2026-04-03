@@ -115,7 +115,7 @@ function App() {
   const openGolfer = (name) => { haptic('light'); setSelectedGolfer(name); };
 
   // Use mock data for tournament preview (will be replaced by ESPN live)
-  const useMockData = true;
+  const useMockData = false; // Set true to preview tournament views with fake data
   const tournamentActive = useMockData && TOURNAMENT_STATUS.status !== 'pre_tournament';
   const leaderboard = useMockData ? MOCK_LEADERBOARD : [];
   const mockStandings = useMockData ? calculateStandings(MOCK_POOL_PLAYERS) : [];
@@ -353,6 +353,26 @@ function App() {
               if (navigator.share) { navigator.share({ text, url }); } else { navigator.clipboard?.writeText(`${text}\n${url}`); }
             }}>
               Send Reminder
+            </button>
+            <button className="comm-btn-full danger" onClick={() => {
+              if (window.confirm('Delete this pool? This cannot be undone. All picks and players will be lost.')) {
+                import('./firebase').then(({ deletePool }) => {
+                  deletePool(poolId).then(() => {
+                    localStorage.removeItem('mastersPoolId');
+                    localStorage.removeItem('mastersPlayerId');
+                    localStorage.removeItem('mastersPlayerName');
+                    localStorage.removeItem('mastersPicks');
+                    setPoolId('');
+                    setPlayerId('');
+                    setPlayerName('');
+                    setPoolData(null);
+                    setMyPicks({});
+                    setScreen('home');
+                  });
+                });
+              }
+            }}>
+              Delete Pool
             </button>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, onValue, set, update, get, push } from 'firebase/database';
+import { getDatabase, ref, onValue, set, update, get, push, remove } from 'firebase/database';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDGFoLFHUuK_FZQkvIlKJ_VMCnsQtUoK_4",
@@ -92,4 +92,8 @@ export async function lockPool(poolId) {
 
 export async function updatePoolSettings(poolId, settings) {
   await update(ref(db, `golf-pools/${poolId}`), settings);
+}
+
+export async function deletePool(poolId) {
+  await remove(ref(db, `golf-pools/${poolId}`));
 }
