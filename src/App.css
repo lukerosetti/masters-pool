@@ -18,13 +18,34 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Georgia', 'Times New Roman', serif; background: var(--masters-bg); color: var(--masters-text); -webkit-font-smoothing: antialiased; }
+html { height: 100%; overflow: hidden; }
+body {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  background: var(--masters-bg);
+  color: var(--masters-text);
+  -webkit-font-smoothing: antialiased;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+#root { height: 100%; overflow: hidden; }
 input, button { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
 
-.app { max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--masters-white); }
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  height: 100%;
+  background: var(--masters-white);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-top: env(safe-area-inset-top, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
 
 /* ─── Home Screen ─── */
-.home-screen { display: flex; flex-direction: column; align-items: center; padding: 60px 24px 40px; text-align: center; background: linear-gradient(180deg, var(--masters-green) 0%, var(--masters-dark) 40%, var(--masters-white) 100%); min-height: 100vh; }
+.home-screen { display: flex; flex-direction: column; align-items: center; padding: 60px 24px 40px; padding-top: calc(60px + env(safe-area-inset-top, 0)); text-align: center; background: linear-gradient(180deg, var(--masters-green) 0%, var(--masters-dark) 40%, var(--masters-white) 100%); min-height: 100vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .home-logo { margin-bottom: 20px; }
 .masters-badge { width: 80px; height: 80px; border-radius: 50%; background: var(--masters-gold); color: var(--masters-green); font-size: 40px; font-weight: 900; font-family: Georgia, serif; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(212,175,55,0.4); border: 3px solid rgba(255,255,255,0.3); }
 .home-title { font-size: 32px; font-weight: 700; color: var(--masters-white); margin-bottom: 4px; font-family: Georgia, serif; letter-spacing: 0.5px; }
@@ -44,8 +65,8 @@ input, button { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
 .info-step span:last-child { font-size: 14px; color: var(--masters-text2); }
 
 /* ─── Form Screens ─── */
-.form-screen { padding: 24px; max-width: 400px; margin: 0 auto; }
-.back-btn { background: none; border: none; color: var(--masters-green); font-size: 16px; font-weight: 600; cursor: pointer; padding: 8px 0; margin-bottom: 16px; }
+.form-screen { padding: 24px; padding-top: calc(24px + env(safe-area-inset-top, 0)); max-width: 400px; margin: 0 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; height: 100%; }
+.back-btn { background: none; border: none; color: var(--masters-green); font-size: 16px; font-weight: 600; cursor: pointer; padding: 8px 0; margin-bottom: 16px; min-height: 44px; display: flex; align-items: center; }
 .form-screen h2 { font-size: 24px; font-family: Georgia, serif; color: var(--masters-green); margin-bottom: 20px; }
 .form-field { margin-bottom: 16px; }
 .form-field label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--masters-text2); margin-bottom: 6px; }
@@ -55,7 +76,7 @@ input, button { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
 .error-msg { color: var(--masters-red); font-size: 13px; margin: 8px 0; font-weight: 500; }
 
 /* ─── Pool Header ─── */
-.pool-header { background: rgba(0,103,71,0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: white; padding: 16px 16px 12px; position: sticky; top: 0; z-index: 20; }
+.pool-header { background: rgba(0,103,71,0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: white; padding: 16px 16px 12px; flex-shrink: 0; z-index: 20; }
 .header-top { display: flex; align-items: center; gap: 10px; }
 .masters-badge-sm { width: 36px; height: 36px; border-radius: 50%; background: var(--masters-gold); color: var(--masters-green); font-size: 18px; font-weight: 900; font-family: Georgia, serif; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .header-info { flex: 1; }
@@ -64,11 +85,11 @@ input, button { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
 .share-btn { padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; font-size: 12px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
 
 /* ─── Tabs ─── */
-.pool-tabs { display: flex; background: rgba(255,255,255,0.92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--masters-border); padding: 0 8px; position: sticky; top: 65px; z-index: 10; }
+.pool-tabs { display: flex; background: rgba(255,255,255,0.92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--masters-border); padding: 0 8px; flex-shrink: 0; z-index: 10; }
 .pool-tabs button { flex: 1; padding: 12px 4px; border: none; background: none; font-size: 13px; font-weight: 600; color: var(--masters-text2); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
 .pool-tabs button.active { color: var(--masters-green); border-bottom-color: var(--masters-green); }
 
-.pool-content { padding: 16px; }
+.pool-content { padding: 16px; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
 
 /* ─── My Team Card ─── */
 .my-team-card { background: var(--masters-white); border: 2px solid var(--masters-green); border-radius: 14px; padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
@@ -138,7 +159,7 @@ input, button { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
 .btn-leave { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--masters-red); background: transparent; color: var(--masters-red); font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 20px; }
 
 /* ─── Tournament Status Bar ─── */
-.tourney-bar { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--masters-dark); color: rgba(255,255,255,0.9); font-size: 12px; }
+.tourney-bar { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--masters-dark); color: rgba(255,255,255,0.9); font-size: 12px; flex-shrink: 0; }
 .tourney-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; animation: pulse 2s infinite; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 .tourney-round { flex: 1; font-weight: 600; }
@@ -182,7 +203,7 @@ input, button { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
 
 /* ─── Leaderboard ─── */
 .leaderboard-tab { margin: 0 -16px; }
-.lb-header-row { display: flex; align-items: center; padding: 8px 12px; background: var(--masters-green); color: rgba(255,255,255,0.8); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; position: sticky; top: 41px; z-index: 5; }
+.lb-header-row { display: flex; align-items: center; padding: 8px 12px; background: var(--masters-green); color: rgba(255,255,255,0.8); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; position: sticky; top: -16px; z-index: 5; margin: 0 -16px; }
 .lb-h-pos { width: 36px; text-align: center; }
 .lb-h-player { flex: 1; }
 .lb-h-today { width: 44px; text-align: center; }
@@ -225,7 +246,7 @@ input, button { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
 
 /* ─── Scorecard Modal ─── */
 .sc-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; display: flex; align-items: flex-end; justify-content: center; }
-.sc-modal { background: var(--masters-white); border-radius: 16px 16px 0 0; width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; padding: 20px 16px 30px; position: relative; }
+.sc-modal { background: var(--masters-white); border-radius: 16px 16px 0 0; width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 20px 16px calc(30px + env(safe-area-inset-bottom, 0)); position: relative; }
 .sc-close { position: absolute; top: 12px; right: 16px; background: none; border: none; font-size: 24px; color: var(--masters-text2); cursor: pointer; }
 .sc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .sc-flag { font-size: 28px; }
@@ -353,7 +374,7 @@ input, button { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
   input { background: var(--masters-card); border-color: var(--masters-border); color: var(--masters-text); }
 }
 
-/* ─── Mobile Safe Areas ─── */
-@supports (padding-top: env(safe-area-inset-top)) {
-  .pool-header { padding-top: calc(16px + env(safe-area-inset-top)); }
-}
+/* ─── Mobile Touch Targets ─── */
+button, a { min-height: 44px; } /* Apple HIG minimum */
+.pool-tabs button { min-height: 40px; } /* tabs can be slightly smaller */
+.lb-row { min-height: 44px; }
