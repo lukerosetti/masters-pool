@@ -402,6 +402,20 @@ input, button { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
 .comm-btn-full { width: 100%; padding: 10px; border-radius: 8px; border: none; background: var(--masters-gold); color: var(--masters-green); font-size: 13px; font-weight: 700; cursor: pointer; margin-bottom: 6px; }
 .comm-btn-full.warning { background: #dc2626; color: white; }
 .comm-btn-full.danger { background: none; border: 1px solid #dc2626; color: #dc2626; margin-top: 12px; }
+
+/* ─── Rejoin Flow ─── */
+.form-subtitle { font-size: 13px; color: var(--masters-text2); margin-bottom: 20px; }
+.rejoin-section { margin-bottom: 16px; }
+.rejoin-label { font-size: 12px; font-weight: 600; color: var(--masters-text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: block; }
+.rejoin-list { display: flex; flex-direction: column; gap: 6px; }
+.rejoin-player { display: flex; align-items: center; gap: 10px; padding: 14px 12px; border-radius: 10px; background: var(--masters-white); border: 1px solid var(--masters-border); cursor: pointer; transition: all 0.2s; text-align: left; }
+.rejoin-player:active { transform: scale(0.98); border-color: var(--masters-green); background: rgba(0,103,71,0.04); }
+.rejoin-name { font-size: 15px; font-weight: 600; flex: 1; }
+.rejoin-status { font-size: 11px; color: var(--masters-text2); }
+.rejoin-comm { font-size: 9px; font-weight: 700; color: var(--masters-gold); background: rgba(212,175,55,0.15); padding: 2px 6px; border-radius: 4px; }
+.rejoin-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+.rejoin-divider::before, .rejoin-divider::after { content: ''; flex: 1; height: 1px; background: var(--masters-border); }
+.rejoin-divider span { font-size: 12px; color: var(--masters-text2); white-space: nowrap; }
 .comm-btn-full:disabled { opacity: 0.4; }
 
 /* ─── Mobile Touch Targets ─── */

@@ -25,6 +25,8 @@ function App() {
   const [joinName, setJoinName] = useState('');
   const [createName, setCreateName] = useState('');
   const [commName, setCommName] = useState('');
+  const [rejoinPlayers, setRejoinPlayers] = useState(null); // array of existing players when pool is found
+  const [rejoinPoolData, setRejoinPoolData] = useState(null);
   const [error, setError] = useState('');
   const [tab, setTab] = useState('picks');
   const [selectedGolfer, setSelectedGolfer] = useState(null);
@@ -167,17 +169,49 @@ function App() {
     } catch (err) { setError('Error: ' + err.message); }
   };
 
-  const handleJoin = async () => {
-    if (!joinCode.trim() || !joinName.trim()) { setError('Enter pool code and your name'); return; }
+  // Step 1: Look up pool by code
+  const handleLookupPool = async () => {
+    if (!joinCode.trim()) { setError('Enter a pool code'); return; }
     setError('');
     try {
-      const id = await joinPool(joinCode.trim().toUpperCase(), joinName.trim());
-      setPoolId(joinCode.trim().toUpperCase());
+      const data = await getPool(joinCode.trim().toUpperCase());
+      if (!data) { setError('Pool not found. Check the code and try again.'); return; }
+      const players = data.players ? Object.entries(data.players).map(([id, p]) => ({ id, ...p })) : [];
+      setRejoinPoolData(data);
+      setRejoinPlayers(players);
+    } catch (err) { setError('Error: ' + err.message); }
+  };
+
+  // Step 2a: Reclaim an existing player
+  const handleReclaim = (pid, pname) => {
+    const code = joinCode.trim().toUpperCase();
+    setPoolId(code);
+    setPlayerId(pid);
+    setPlayerName(pname);
+    localStorage.setItem('mastersPoolId', code);
+    localStorage.setItem('mastersPlayerId', pid);
+    localStorage.setItem('mastersPlayerName', pname);
+    haptic('medium');
+    setRejoinPlayers(null);
+    setRejoinPoolData(null);
+    setScreen('picks');
+  };
+
+  // Step 2b: Join as a new player
+  const handleJoinNew = async () => {
+    if (!joinName.trim()) { setError('Enter your name'); return; }
+    setError('');
+    try {
+      const code = joinCode.trim().toUpperCase();
+      const id = await joinPool(code, joinName.trim());
+      setPoolId(code);
       setPlayerId(id);
       setPlayerName(joinName.trim());
-      localStorage.setItem('mastersPoolId', joinCode.trim().toUpperCase());
+      localStorage.setItem('mastersPoolId', code);
       localStorage.setItem('mastersPlayerId', id);
       localStorage.setItem('mastersPlayerName', joinName.trim());
+      setRejoinPlayers(null);
+      setRejoinPoolData(null);
       setScreen('picks');
     } catch (err) { setError(err.message); }
   };
@@ -262,12 +296,44 @@ function App() {
   if (screen === 'join') return (
     <div className="app">
       <div className="form-screen">
-        <button className="back-btn" onClick={() => setScreen('home')}>&larr; Back</button>
-        <h2>Join Pool</h2>
-        <div className="form-field"><label>Pool Code</label><input type="text" placeholder="XXXXX" value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} maxLength={6} className="code-input" /></div>
-        <div className="form-field"><label>Your Name</label><input type="text" placeholder="e.g. Nick" value={joinName} onChange={e => setJoinName(e.target.value)} maxLength={20} /></div>
-        {error && <div className="error-msg">{error}</div>}
-        <button className="btn-primary" onClick={handleJoin} disabled={!joinCode.trim() || !joinName.trim()}>Join Pool</button>
+        <button className="back-btn" onClick={() => {
+          if (rejoinPlayers) { setRejoinPlayers(null); setRejoinPoolData(null); setError(''); }
+          else setScreen('home');
+        }}>&larr; Back</button>
+
+        {!rejoinPlayers ? (
+          <>
+            <h2>Join Pool</h2>
+            <div className="form-field"><label>Pool Code</label><input type="text" placeholder="XXXXX" value={joinCode} onChange={e => setJoinCode(e.target.value.toUpperCase())} maxLength={6} className="code-input" onKeyDown={e => e.key === 'Enter' && handleLookupPool()} /></div>
+            {error && <div className="error-msg">{error}</div>}
+            <button className="btn-primary" onClick={handleLookupPool} disabled={!joinCode.trim()}>Find Pool</button>
+          </>
+        ) : (
+          <>
+            <h2>{rejoinPoolData?.name || 'Pool'}</h2>
+            <p className="form-subtitle">{rejoinPlayers.length} player{rejoinPlayers.length !== 1 ? 's' : ''} in this pool</p>
+
+            {rejoinPlayers.length > 0 && (
+              <div className="rejoin-section">
+                <label className="rejoin-label">Returning? Tap your name</label>
+                <div className="rejoin-list">
+                  {rejoinPlayers.map(p => (
+                    <button key={p.id} className="rejoin-player" onClick={() => handleReclaim(p.id, p.name)}>
+                      <span className="rejoin-name">{p.name}</span>
+                      <span className="rejoin-status">{p.locked ? 'Locked' : p.picks?.length ? `${p.picks.length} picks` : 'No picks'}</span>
+                      {p.isCommissioner && <span className="rejoin-comm">Comm</span>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="rejoin-divider"><span>or join as new</span></div>
+            <div className="form-field"><label>Your Name</label><input type="text" placeholder="e.g. Nick" value={joinName} onChange={e => setJoinName(e.target.value)} maxLength={20} onKeyDown={e => e.key === 'Enter' && handleJoinNew()} /></div>
+            {error && <div className="error-msg">{error}</div>}
+            <button className="btn-primary" onClick={handleJoinNew} disabled={!joinName.trim()}>Join as New Player</button>
+          </>
+        )}
       </div>
     </div>
   );
