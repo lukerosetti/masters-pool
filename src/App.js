@@ -204,9 +204,10 @@ function App() {
   };
 
   const handleShare = () => {
-    const text = `Join my Masters Pool!\n\nPool Code: ${poolId}\n\nOpen the app and enter the code to join.`;
-    if (navigator.share) navigator.share({ text }).catch(() => {});
-    else navigator.clipboard?.writeText(text);
+    const url = 'https://masters.onrender.com';
+    const text = `Join my Masters Pool!\n\nPool Code: ${poolId}\n\nOpen the link, tap "Join a Pool", and enter the code.`;
+    if (navigator.share) navigator.share({ text, url }).catch(() => {});
+    else navigator.clipboard?.writeText(`${text}\n${url}`);
   };
 
   const isLocked = poolData?.players?.[playerId]?.locked;
@@ -347,8 +348,9 @@ function App() {
               Lock Pool Now (Removes Unlocked Players)
             </button>
             <button className="comm-btn-full" onClick={() => {
-              const text = `Picks lock ${poolDeadline ? 'at ' + new Date(poolDeadline).toLocaleString('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : 'soon'}! Get your Masters picks in:\nhttps://masters.onrender.com\nPool Code: ${poolId}`;
-              if (navigator.share) { navigator.share({ text }); } else { navigator.clipboard?.writeText(text); }
+              const url = 'https://masters.onrender.com';
+              const text = `Picks lock ${poolDeadline ? 'at ' + new Date(poolDeadline).toLocaleString('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : 'soon'}! Get your Masters picks in.\n\nPool Code: ${poolId}`;
+              if (navigator.share) { navigator.share({ text, url }); } else { navigator.clipboard?.writeText(`${text}\n${url}`); }
             }}>
               Send Reminder
             </button>
