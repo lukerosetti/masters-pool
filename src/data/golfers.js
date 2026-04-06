@@ -90,8 +90,8 @@ export const GOLFERS = [
   { name: 'Naoyuki Kataoka', owgr: 74, country: 'JP', flag: f('JP'), majors: 0, mastersWins: 0 },
   { name: 'Rasmus Neergaard-Petersen', owgr: 75, country: 'DK', flag: f('DK'), majors: 0, mastersWins: 0 },
   { name: 'Sergio Garcia', owgr: 76, country: 'ES', flag: f('ES'), majors: 1, mastersWins: 1 },
-  { name: 'Tiger Woods', owgr: 77, country: 'US', flag: f('US'), majors: 15, mastersWins: 5 },
-  { name: 'Phil Mickelson', owgr: 78, country: 'US', flag: f('US'), majors: 6, mastersWins: 3 },
+  { name: 'Brandon Holtz', owgr: 77, country: 'US', flag: f('US'), majors: 0, mastersWins: 0 },
+  { name: 'Jackson Herrington', owgr: 78, country: 'US', flag: f('US'), majors: 0, mastersWins: 0 },
   { name: 'Bubba Watson', owgr: 79, country: 'US', flag: f('US'), majors: 2, mastersWins: 2 },
   { name: 'Vijay Singh', owgr: 80, country: 'FJ', flag: f('FJ'), majors: 3, mastersWins: 1 },
   { name: 'Angel Cabrera', owgr: 81, country: 'AR', flag: f('AR'), majors: 2, mastersWins: 1 },
@@ -117,6 +117,21 @@ export const ESPN_NAME_MAP = {
   'Sergio Garc\u00EDa': 'Sergio Garcia',
   'Jos\u00E9 Mar\u00EDa Olaz\u00E1bal': 'Jose Maria Olazabal',
   'Nico Echavarr\u00EDa': 'Nico Echavarria',
+};
+
+// Normalize ESPN name to match our golfer list
+// Handles: NFD accents (á, é, etc.), Nordic chars (ø, å), and explicit map
+export const normalizeESPNName = (espnName) => {
+  if (!espnName) return '';
+  // Check explicit map first
+  if (ESPN_NAME_MAP[espnName]) return ESPN_NAME_MAP[espnName];
+  // Strip accents via NFD + replace Nordic chars that don't decompose
+  return espnName
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/\u00F8/g, 'o').replace(/\u00D8/g, 'O')  // ø/Ø
+    .replace(/\u00E6/g, 'ae').replace(/\u00C6/g, 'Ae') // æ/Æ
+    .replace(/\u00F0/g, 'd').replace(/\u00D0/g, 'D')   // ð/Ð
+    .replace(/\u00FE/g, 'th').replace(/\u00DE/g, 'Th'); // þ/Þ
 };
 
 // Pod definitions
