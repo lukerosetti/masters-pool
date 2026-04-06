@@ -131,24 +131,6 @@ function App() {
   const activeScorecards = useMockData ? MOCK_SCORECARD : liveScorecards;
   const mockStandings = useMockData ? calculateStandings(MOCK_POOL_PLAYERS) : [];
 
-  // Live standings: Firebase pool players + live leaderboard
-  const liveStandings = useMemo(() => {
-    if (!tournamentActive || useMockData || leaderboard.length === 0) return [];
-    // Build player list from Firebase pool data
-    const poolPlayers = players.map(([id, data]) => ({
-      id,
-      name: data.name,
-      picks: data.picks || [],
-      isCommissioner: data.isCommissioner,
-      locked: data.locked,
-    })).filter(p => p.locked && p.picks.length > 0);
-    const leaderName = leaderboard[0]?.name || '';
-    return calculateLiveStandings(poolPlayers, leaderboard, leaderName);
-  }, [tournamentActive, useMockData, leaderboard, players]);
-
-  // Active standings: mock or live
-  const activeStandings = useMockData ? mockStandings : liveStandings;
-
   // Flat array of current user's pick names (for highlighting on leaderboard)
   const myPicksList = useMemo(() => Object.values(myPicks).filter(Boolean), [myPicks]);
 
@@ -157,18 +139,19 @@ function App() {
     return leaderboard.find(g => g.name === name) || null;
   }, [leaderboard]);
 
-  // Get who picked a golfer — from live Firebase data or mock
-  const getActivePickedBy = useCallback((golferName) => {
-    if (useMockData) return getActivePickedBy(golferName);
-    // Build from Firebase pool data
-    return players
-      .filter(([, data]) => data.locked && (data.picks || []).includes(golferName))
-      .map(([id, data]) => ({
-        id,
-        name: data.name,
-        initials: (data.name || '').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || id.slice(0, 2).toUpperCase(),
-      }));
-  }, [useMockData, players]);
+  // Live standings: Firebase pool players + live leaderboard
+  const liveStandings = useMemo(() => {
+    if (!tournamentActive || useMockData || leaderboard.length === 0) return [];
+    const poolEntries = poolData?.players ? Object.entries(poolData.players) : [];
+    if (poolEntries.length === 0) return [];
+    const poolPlayers = poolEntries.map(([id, data]) => ({
+      id, name: data.name, picks: data.picks || [], isCommissioner: data.isCommissioner, locked: data.locked,
+    })).filter(p => p.locked && p.picks.length > 0);
+    const leaderName = leaderboard[0]?.name || '';
+    return calculateLiveStandings(poolPlayers, leaderboard, leaderName);
+  }, [tournamentActive, useMockData, leaderboard, poolData]);
+
+  const activeStandings = useMockData ? mockStandings : liveStandings;
 
   useEffect(() => {
     if (!poolId) return;
@@ -307,7 +290,33 @@ function App() {
   if (screen === 'home') return (
     <div className="app">
       <div className="home-screen">
-        <div className="home-logo"><div className="masters-badge">M</div></div>
+        <div className="home-logo">
+          <svg className="masters-logo-svg" viewBox="0 0 120 120" width="120" height="120">
+            {/* Gold circle background */}
+            <circle cx="60" cy="60" r="58" fill="#D4AF37" stroke="rgba(255,255,255,0.3)" strokeWidth="2"/>
+            {/* Green jacket silhouette */}
+            <path d="M38 85 L38 52 Q38 42 48 38 L55 36 Q58 35 60 35 Q62 35 65 36 L72 38 Q82 42 82 52 L82 85 Q82 90 77 90 L43 90 Q38 90 38 85Z" fill="#006747" opacity="0.9"/>
+            {/* Jacket lapels */}
+            <path d="M55 36 L60 55 L53 45 Z" fill="#004D35"/>
+            <path d="M65 36 L60 55 L67 45 Z" fill="#004D35"/>
+            {/* Jacket collar */}
+            <path d="M50 38 Q55 33 60 35 Q65 33 70 38 L65 42 Q62 37 60 37 Q58 37 55 42 Z" fill="#004D35"/>
+            {/* Pin flag pole */}
+            <line x1="60" y1="18" x2="60" y2="50" stroke="#C0A030" strokeWidth="1.5"/>
+            {/* Red pin flag */}
+            <path d="M60 18 L76 24 L60 30 Z" fill="#C41E3A"/>
+            {/* Flag shadow */}
+            <path d="M60 18 L76 24 L60 30 Z" fill="rgba(0,0,0,0.15)"/>
+            <path d="M60 18 L73 23 L60 28 Z" fill="#C41E3A"/>
+            {/* Azalea accent (small flowers at bottom) */}
+            <circle cx="42" cy="92" r="3" fill="#E91E8C" opacity="0.6"/>
+            <circle cx="48" cy="95" r="2.5" fill="#D4268E" opacity="0.5"/>
+            <circle cx="72" cy="92" r="3" fill="#E91E8C" opacity="0.6"/>
+            <circle cx="78" cy="95" r="2.5" fill="#D4268E" opacity="0.5"/>
+            <circle cx="54" cy="96" r="2" fill="#E91E8C" opacity="0.4"/>
+            <circle cx="66" cy="96" r="2" fill="#E91E8C" opacity="0.4"/>
+          </svg>
+        </div>
         <h1 className="home-title">Masters Pool</h1>
         <p className="home-subtitle">Augusta National · April 2026</p>
         <div className="home-actions">
@@ -398,11 +407,28 @@ function App() {
   const pod = PODS[currentPod];
   const podGolfers = pod ? getGolfersInPod(pod) : [];
 
+  // Get who picked a golfer — from live Firebase data or mock
+  const getActivePickedBy = (golferName) => {
+    if (useMockData) return getPickedBy(golferName);
+    return players
+      .filter(([, data]) => data.locked && (data.picks || []).includes(golferName))
+      .map(([id, data]) => ({
+        id,
+        name: data.name,
+        initials: (data.name || '').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || id.slice(0, 2).toUpperCase(),
+      }));
+  };
+
   return (
     <div className="app">
       <header className="pool-header">
         <div className="header-top">
-          <div className="masters-badge-sm">M</div>
+          <svg className="masters-badge-sm-svg" viewBox="0 0 40 40" width="36" height="36">
+            <circle cx="20" cy="20" r="19" fill="#D4AF37" stroke="rgba(255,255,255,0.3)" strokeWidth="1"/>
+            <path d="M13 30 L13 18 Q13 14 17 13 L19 12.5 Q20 12 20 12 Q20 12 21 12.5 L23 13 Q27 14 27 18 L27 30 Q27 32 25 32 L15 32 Q13 32 13 30Z" fill="#006747"/>
+            <line x1="20" y1="5" x2="20" y2="17" stroke="#C0A030" strokeWidth="1"/>
+            <path d="M20 5 L27 8 L20 10.5 Z" fill="#C41E3A"/>
+          </svg>
           <div className="header-info">
             <h1>{poolData?.name || 'Masters Pool'}</h1>
             <p>{poolId} · {players.length} player{players.length !== 1 ? 's' : ''} · {lockedCount} locked</p>
