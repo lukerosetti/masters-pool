@@ -144,8 +144,8 @@ export const PODS = [
   { id: 'F', label: 'Pod F', subtitle: 'OWGR 51+', range: [51, 999] },
 ];
 
-export const getGolfersInPod = (podIndex) => {
-  const pod = PODS[podIndex];
-  if (!pod) return [];
+export const getGolfersInPod = (podOrIndex) => {
+  const pod = typeof podOrIndex === 'number' ? PODS[podOrIndex] : podOrIndex;
+  if (!pod || !pod.range) return [];
   return GOLFERS.filter(g => g.owgr >= pod.range[0] && g.owgr <= pod.range[1]);
 };
