@@ -167,6 +167,63 @@ export const calculateStandings = (players) => {
   });
 };
 
+// Calculate live standings from Firebase pool players + live leaderboard
+// poolPlayers: array of { id, name, picks: [...], isCommissioner, locked }
+// liveBoard: array of { name, pos, total, today, thru, status, ... }
+// leaderName: name of the tournament leader (liveBoard[0].name)
+export const calculateLiveStandings = (poolPlayers, liveBoard, leaderName) => {
+  if (!poolPlayers || !liveBoard || liveBoard.length === 0) return [];
+
+  const getBoardEntry = (golferName) => liveBoard.find(g => g.name === golferName);
+
+  return poolPlayers.map(player => {
+    const picks = player.picks || [];
+    const golferScores = picks.map(name => {
+      const entry = getBoardEntry(name);
+      if (!entry) return { name, score: 999, pos: 99, status: 'unknown', today: null, thru: null };
+      const numScore = entry.total === 'E' ? 0 : (typeof entry.total === 'number' ? entry.total : 999);
+      return { name, score: numScore, pos: entry.pos, status: entry.status, today: entry.today, thru: entry.thru };
+    });
+
+    // Sort by score (lowest first)
+    const sorted = [...golferScores].sort((a, b) => a.score - b.score);
+    const counting = sorted.slice(0, 4); // Best 4
+    const bench = sorted.slice(4); // Worst 2
+
+    // Must have 4 golfers make the cut to qualify
+    const madeCut = golferScores.filter(g => g.status !== 'cut' && g.status !== 'unknown').length;
+    const qualified = madeCut >= 4;
+    const totalScore = qualified ? counting.reduce((sum, g) => sum + g.score, 0) : 999;
+
+    // Tiebreaker: picked the tournament leader
+    const pickedLeader = picks.includes(leaderName);
+
+    // Best individual finish position
+    const validPositions = golferScores.filter(g => typeof g.pos === 'number').map(g => g.pos);
+    const bestFinish = validPositions.length > 0 ? Math.min(...validPositions) : 999;
+
+    return {
+      ...player,
+      golferScores: sorted,
+      counting,
+      bench,
+      totalScore,
+      qualified,
+      madeCut,
+      pickedLeader,
+      bestFinish,
+    };
+  }).sort((a, b) => {
+    // Qualified players first, then disqualified
+    if (a.qualified !== b.qualified) return a.qualified ? -1 : 1;
+    if (a.totalScore !== b.totalScore) return a.totalScore - b.totalScore;
+    // Tiebreaker 1: picked tournament leader
+    if (a.pickedLeader !== b.pickedLeader) return a.pickedLeader ? -1 : 1;
+    // Tiebreaker 2: best individual finish
+    return a.bestFinish - b.bestFinish;
+  });
+};
+
 // Augusta National hole data (par for each hole)
 export const AUGUSTA_HOLES = [
   { hole: 1, par: 4, name: 'Tea Olive', yards: 445 },

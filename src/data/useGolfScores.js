@@ -167,22 +167,38 @@ export function useGolfScores() {
 
         // Build scorecard (hole-by-hole for each round)
         const rounds = [];
-        linescores.forEach(ls => {
+        const playoffHoles = [];
+        linescores.forEach((ls, lsIdx) => {
           if (!ls) { rounds.push(null); return; }
           const holeScores = ls.linescores || [];
           if (holeScores.length === 0) { rounds.push(null); return; }
-          const holes = new Array(18).fill(null);
-          holeScores.forEach(h => {
-            const holeNum = h.period; // 1-18
-            if (holeNum >= 1 && holeNum <= 18) {
-              holes[holeNum - 1] = h.value != null ? h.value : null;
-            }
-          });
-          rounds.push(holes);
+
+          // Regular rounds (1-4): holes 1-18
+          if (lsIdx < 4) {
+            const holes = new Array(18).fill(null);
+            holeScores.forEach(h => {
+              const holeNum = h.period;
+              if (holeNum >= 1 && holeNum <= 18) {
+                holes[holeNum - 1] = h.value != null ? h.value : null;
+              }
+            });
+            rounds.push(holes);
+          } else {
+            // Playoff round (5+): collect all holes
+            holeScores.forEach(h => {
+              if (h.value != null) {
+                playoffHoles.push({
+                  hole: h.period,
+                  score: h.value,
+                  par: h.scoreType?.displayValue || null,
+                });
+              }
+            });
+          }
         });
         // Pad to 4 rounds
         while (rounds.length < 4) rounds.push(null);
-        cards[name] = { rounds };
+        cards[name] = { rounds, playoff: playoffHoles.length > 0 ? playoffHoles : null };
       });
 
       // Sort by position/score
