@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html><head><title>Generate Icon</title></head>
+<body style='background:#333;display:flex;align-items:center;justify-content:center;height:100vh'>
+<canvas id='c' width='512' height='512'></canvas>
+<script>
+const c = document.getElementById('c');
+const ctx = c.getContext('2d');
+// Green background with rounded corners
+ctx.fillStyle = '#006747';
+ctx.beginPath();
+ctx.roundRect(0, 0, 512, 512, 100);
+ctx.fill();
+
+// Gold circle
+ctx.fillStyle = '#D4AF37';
+ctx.beginPath();
+ctx.arc(256, 230, 140, 0, Math.PI * 2);
+ctx.fill();
+
+// Green jacket body
+ctx.fillStyle = '#006747';
+ctx.beginPath();
+ctx.moveTo(175, 360);
+ctx.lineTo(175, 240);
+ctx.quadraticCurveTo(175, 210, 205, 200);
+ctx.lineTo(235, 192);
+ctx.quadraticCurveTo(248, 188, 256, 188);
+ctx.quadraticCurveTo(264, 188, 277, 192);
+ctx.lineTo(307, 200);
+ctx.quadraticCurveTo(337, 210, 337, 240);
+ctx.lineTo(337, 360);
+ctx.quadraticCurveTo(337, 375, 322, 375);
+ctx.lineTo(190, 375);
+ctx.quadraticCurveTo(175, 375, 175, 360);
+ctx.fill();
+
+// Jacket lapels
+ctx.fillStyle = '#004D35';
+ctx.beginPath(); ctx.moveTo(235, 192); ctx.lineTo(256, 260); ctx.lineTo(225, 235); ctx.fill();
+ctx.beginPath(); ctx.moveTo(277, 192); ctx.lineTo(256, 260); ctx.lineTo(287, 235); ctx.fill();
+
+// Collar
+ctx.beginPath();
+ctx.moveTo(215, 200);
+ctx.quadraticCurveTo(235, 180, 256, 188);
+ctx.quadraticCurveTo(277, 180, 297, 200);
+ctx.lineTo(277, 215);
+ctx.quadraticCurveTo(268, 195, 256, 195);
+ctx.quadraticCurveTo(244, 195, 235, 215);
+ctx.closePath();
+ctx.fill();
+
+// Flag pole
+ctx.strokeStyle = '#C0A030';
+ctx.lineWidth = 4;
+ctx.beginPath(); ctx.moveTo(256, 95); ctx.lineTo(256, 200); ctx.stroke();
+
+// Red flag
+ctx.fillStyle = '#C41E3A';
+ctx.beginPath(); ctx.moveTo(256, 95); ctx.lineTo(318, 118); ctx.lineTo(256, 140); ctx.fill();
+
+// Azaleas
+ctx.globalAlpha = 0.6;
+ctx.fillStyle = '#E91E8C';
+ctx.beginPath(); ctx.arc(185, 390, 10, 0, Math.PI*2); ctx.fill();
+ctx.beginPath(); ctx.arc(327, 390, 10, 0, Math.PI*2); ctx.fill();
+ctx.globalAlpha = 0.5;
+ctx.fillStyle = '#D4268E';
+ctx.beginPath(); ctx.arc(210, 400, 8, 0, Math.PI*2); ctx.fill();
+ctx.beginPath(); ctx.arc(302, 400, 8, 0, Math.PI*2); ctx.fill();
+ctx.globalAlpha = 1;
+
+// Text
+ctx.fillStyle = 'rgba(255,255,255,0.9)';
+ctx.font = '700 38px Georgia';
+ctx.textAlign = 'center';
+ctx.fillText('MASTERS', 256, 455);
+ctx.font = '600 32px Georgia';
+ctx.fillText('POOL', 256, 490);
+
+// Download
+const link = document.createElement('a');
+link.download = 'masters-icon-512.png';
+link.href = c.toDataURL('image/png');
+document.body.appendChild(link);
+
+// Also create 192 and 180 versions
+[192, 180].forEach(size => {
+  const c2 = document.createElement('canvas');
+  c2.width = size; c2.height = size;
+  c2.getContext('2d').drawImage(c, 0, 0, size, size);
+  const link2 = document.createElement('a');
+  link2.download = 'masters-icon-' + size + '.png';
+  link2.href = c2.toDataURL('image/png');
+  link2.textContent = size + 'px';
+  link2.style.cssText = 'color:white;margin:10px;font-size:20px';
+  document.body.appendChild(link2);
+});
+
+link.textContent = '512px';
+link.style.cssText = 'color:white;margin:10px;font-size:20px';
+document.body.appendChild(document.createElement('br'));
+document.body.appendChild(document.createTextNode('Click a size to download:'));
+</script>
+</body></html>

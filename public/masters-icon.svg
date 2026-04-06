@@ -1,0 +1,27 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="100" fill="#006747"/>
+  <!-- Gold circle -->
+  <circle cx="256" cy="240" r="150" fill="#D4AF37" stroke="rgba(255,255,255,0.3)" stroke-width="4"/>
+  <!-- Green jacket silhouette -->
+  <path d="M175 370 L175 240 Q175 210 205 200 L235 192 Q248 188 256 188 Q264 188 277 192 L307 200 Q337 210 337 240 L337 370 Q337 385 322 385 L190 385 Q175 385 175 370Z" fill="#006747" opacity="0.9"/>
+  <!-- Jacket lapels -->
+  <path d="M235 192 L256 270 L225 240 Z" fill="#004D35"/>
+  <path d="M277 192 L256 270 L287 240 Z" fill="#004D35"/>
+  <!-- Jacket collar -->
+  <path d="M215 200 Q235 180 256 188 Q277 180 297 200 L277 215 Q268 195 256 195 Q244 195 235 215 Z" fill="#004D35"/>
+  <!-- Pin flag pole -->
+  <line x1="256" y1="100" x2="256" y2="210" stroke="#C0A030" stroke-width="4"/>
+  <!-- Red pin flag -->
+  <path d="M256 100 L325 125 L256 148 Z" fill="#C41E3A"/>
+  <path d="M256 100 L315 122 L256 142 Z" fill="#C41E3A"/>
+  <!-- Azalea accents -->
+  <circle cx="185" cy="400" r="12" fill="#E91E8C" opacity="0.6"/>
+  <circle cx="210" cy="412" r="10" fill="#D4268E" opacity="0.5"/>
+  <circle cx="327" cy="400" r="12" fill="#E91E8C" opacity="0.6"/>
+  <circle cx="302" cy="412" r="10" fill="#D4268E" opacity="0.5"/>
+  <circle cx="240" cy="415" r="8" fill="#E91E8C" opacity="0.4"/>
+  <circle cx="272" cy="415" r="8" fill="#E91E8C" opacity="0.4"/>
+  <!-- "Masters Pool" text -->
+  <text x="256" y="470" text-anchor="middle" font-family="Georgia, serif" font-size="42" font-weight="700" fill="rgba(255,255,255,0.9)" letter-spacing="2">MASTERS POOL</text>
+</svg>
