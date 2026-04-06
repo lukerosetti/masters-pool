@@ -30,6 +30,7 @@ function App() {
   const [error, setError] = useState('');
   const [tab, setTab] = useState('picks');
   const [selectedGolfer, setSelectedGolfer] = useState(null);
+  const [boardView, setBoardView] = useState('modern'); // 'modern' | 'classic'
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showCommTools, setShowCommTools] = useState(false);
@@ -569,45 +570,116 @@ function App() {
         {/* ═══ LEADERBOARD ═══ */}
         {tab === 'leaderboard' && tournamentActive && (
           <div className="leaderboard-tab">
-            <div className="lb-header-row">
-              <span className="lb-h-pos">Pos</span>
-              <span className="lb-h-player">Player</span>
-              <span className="lb-h-today">Today</span>
-              <span className="lb-h-thru">Thru</span>
-              <span className="lb-h-total">Total</span>
+            {/* Classic / Modern toggle */}
+            <div className="lb-view-toggle">
+              <button className={boardView === 'modern' ? 'active' : ''} onClick={() => setBoardView('modern')}>Modern</button>
+              <button className={boardView === 'classic' ? 'active' : ''} onClick={() => setBoardView('classic')}>Classic</button>
             </div>
-            {leaderboard.map((g, idx) => {
-              const golferData = GOLFERS.find(gl => gl.name === g.name);
-              const isMine = MOCK_POOL_PLAYERS[0]?.picks.includes(g.name);
-              const pickedBy = tournamentActive ? getPickedBy(g.name) : [];
-              return (
-                <div key={g.name} className={`lb-row ${g.status === 'cut' ? 'cut-row' : ''} ${g.status === 'active' ? 'active-row' : ''} ${isMine ? 'my-pick' : ''}`} onClick={() => g.status !== 'cut' && setSelectedGolfer(g.name)}>
-                  <span className={`lb-pos ${g.movement === 'up' ? 'mov-up' : g.movement === 'down' ? 'mov-down' : ''}`}>
-                    {g.status === 'cut' ? 'MC' : g.pos}
-                  </span>
-                  <div className="lb-player-col">
-                    <span className="lb-player">
-                      <span className="lb-flag">{golferData?.flag}</span>
-                      <span className="lb-name">{g.name}</span>
-                    </span>
-                    {pickedBy.length > 0 && (
-                      <div className="lb-owners">
-                        {pickedBy.map(o => (
-                          <span key={o.id} className={`lb-owner-chip ${o.id === 'luke' ? 'me' : ''}`} title={o.name}>{o.initials}</span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <span className={`lb-today ${typeof g.today === 'number' && g.today < 0 ? 'under' : typeof g.today === 'number' && g.today > 0 ? 'over' : ''}`}>
-                    {g.today == null ? '-' : g.today === 'E' ? 'E' : typeof g.today === 'number' ? (g.today > 0 ? `+${g.today}` : g.today) : g.today}
-                  </span>
-                  <span className="lb-thru">{g.thru ?? '-'}</span>
-                  <span className={`lb-total ${typeof g.total === 'number' && g.total < 0 ? 'under' : typeof g.total === 'number' && g.total > 0 ? 'over' : ''}`}>
-                    {formatScore(g.total)}
-                  </span>
+
+            {boardView === 'modern' && (
+              <>
+                <div className="lb-header-row">
+                  <span className="lb-h-pos">Pos</span>
+                  <span className="lb-h-player">Player</span>
+                  <span className="lb-h-today">Today</span>
+                  <span className="lb-h-thru">Thru</span>
+                  <span className="lb-h-total">Total</span>
                 </div>
-              );
-            })}
+                {leaderboard.map((g, idx) => {
+                  const golferData = GOLFERS.find(gl => gl.name === g.name);
+                  const isMine = MOCK_POOL_PLAYERS[0]?.picks.includes(g.name);
+                  const pickedBy = tournamentActive ? getPickedBy(g.name) : [];
+                  return (
+                    <div key={g.name} className={`lb-row ${g.status === 'cut' ? 'cut-row' : ''} ${g.status === 'active' ? 'active-row' : ''} ${isMine ? 'my-pick' : ''}`} onClick={() => g.status !== 'cut' && openGolfer(g.name)}>
+                      <span className={`lb-pos ${g.movement === 'up' ? 'mov-up' : g.movement === 'down' ? 'mov-down' : ''}`}>
+                        {g.status === 'cut' ? 'MC' : g.pos}
+                      </span>
+                      <div className="lb-player-col">
+                        <span className="lb-player">
+                          <span className="lb-flag">{golferData?.flag}</span>
+                          <span className="lb-name">{g.name}</span>
+                        </span>
+                        {pickedBy.length > 0 && (
+                          <div className="lb-owners">
+                            {pickedBy.map(o => (
+                              <span key={o.id} className={`lb-owner-chip ${o.id === 'luke' ? 'me' : ''}`} title={o.name}>{o.initials}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <span className={`lb-today ${typeof g.today === 'number' && g.today < 0 ? 'under' : typeof g.today === 'number' && g.today > 0 ? 'over' : ''}`}>
+                        {g.today == null ? '-' : g.today === 'E' ? 'E' : typeof g.today === 'number' ? (g.today > 0 ? `+${g.today}` : g.today) : g.today}
+                      </span>
+                      <span className="lb-thru">{g.thru ?? '-'}</span>
+                      <span className={`lb-total ${typeof g.total === 'number' && g.total < 0 ? 'under' : typeof g.total === 'number' && g.total > 0 ? 'over' : ''}`}>
+                        {formatScore(g.total)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </>
+            )}
+
+            {boardView === 'classic' && (
+              <div className="classic-board">
+                <div className="classic-header">LEADERS</div>
+                <div className="classic-scroll">
+                  <table className="classic-table">
+                    <thead>
+                      <tr className="classic-hole-row">
+                        <th className="classic-pos-cell"></th>
+                        <th className="classic-name-cell">PLAYER</th>
+                        <th className="classic-total-cell">TO PAR</th>
+                        <th className="classic-thru-cell">THRU</th>
+                        {AUGUSTA_HOLES.map(h => (
+                          <th key={h.hole} className="classic-hole-cell">{h.hole}</th>
+                        ))}
+                      </tr>
+                      <tr className="classic-par-row">
+                        <td className="classic-pos-cell"></td>
+                        <td className="classic-name-cell">PAR</td>
+                        <td className="classic-total-cell"></td>
+                        <td className="classic-thru-cell"></td>
+                        {AUGUSTA_HOLES.map(h => (
+                          <td key={h.hole} className="classic-hole-cell classic-par-num">{h.par}</td>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {leaderboard.filter(g => g.status !== 'cut').slice(0, 20).map(g => {
+                        const sc = MOCK_SCORECARD[g.name];
+                        const currentRound = sc?.rounds ? sc.rounds.findIndex(r => r && r.some(h => h === null)) : -1;
+                        const displayRound = currentRound >= 0 ? currentRound : (sc?.rounds ? sc.rounds.length - 1 : -1);
+                        const holes = displayRound >= 0 && sc?.rounds?.[displayRound] ? sc.rounds[displayRound] : [];
+                        const isMine = MOCK_POOL_PLAYERS[0]?.picks.includes(g.name);
+
+                        return (
+                          <tr key={g.name} className={`classic-player-row ${isMine ? 'classic-mine' : ''}`} onClick={() => openGolfer(g.name)}>
+                            <td className="classic-pos-cell">{g.pos}</td>
+                            <td className="classic-name-cell">{g.name.split(' ').pop().toUpperCase()}</td>
+                            <td className={`classic-total-cell ${typeof g.total === 'number' && g.total < 0 ? 'classic-under' : typeof g.total === 'number' && g.total > 0 ? 'classic-over' : ''}`}>
+                              {formatScore(g.total)}
+                            </td>
+                            <td className="classic-thru-cell">{g.thru === 'F' ? 'F' : g.thru ?? '-'}</td>
+                            {AUGUSTA_HOLES.map((h, hi) => {
+                              const score = holes[hi];
+                              if (score == null) return <td key={h.hole} className="classic-hole-cell classic-empty"></td>;
+                              const diff = score - h.par;
+                              const cls = diff < -1 ? 'classic-eagle' : diff < 0 ? 'classic-birdie' : diff > 1 ? 'classic-dbl-bogey' : diff > 0 ? 'classic-bogey' : '';
+                              return (
+                                <td key={h.hole} className={`classic-hole-cell ${cls}`}>
+                                  <span className={`classic-score ${cls}`}>{score}</span>
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
