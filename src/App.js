@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { GOLFERS, PODS, getGolfersInPod } from './data/golfers';
 import { subscribeToPool, submitPicks, joinPool, createPool, getPool, setPoolDeadline, removePlayer, lockPool } from './firebase';
 import { TOURNAMENT_STATUS, MOCK_LEADERBOARD, MOCK_POOL_PLAYERS, MOCK_SCORECARD, AUGUSTA_HOLES, AUGUSTA_PAR, getGolferScore, formatScore, calculateStandings, getPickedBy, calcRoundScore, calcNines } from './data/mockTournament';
+import { useGolfScores } from './data/useGolfScores';
 import './App.css';
 
 // Haptic feedback utility
@@ -117,14 +118,26 @@ function App() {
   // Golfer card tap with haptic
   const openGolfer = (name) => { haptic('light'); setSelectedGolfer(name); };
 
-  // Use mock data for tournament preview (will be replaced by ESPN live)
+  // ESPN live golf scores
+  const { leaderboard: liveLeaderboard, tournamentStatus: liveStatus, scorecards: liveScorecards, isLoading: scoresLoading } = useGolfScores();
+
+  // Use mock data for preview, or live ESPN data
   const useMockData = false; // Set true to preview tournament views with fake data
-  const tournamentActive = useMockData && TOURNAMENT_STATUS.status !== 'pre_tournament';
-  const leaderboard = useMockData ? MOCK_LEADERBOARD : [];
+  const tournamentActive = useMockData
+    ? TOURNAMENT_STATUS.status !== 'pre_tournament'
+    : liveStatus.status !== 'pre_tournament';
+  const leaderboard = useMockData ? MOCK_LEADERBOARD : liveLeaderboard;
+  const activeTournamentStatus = useMockData ? TOURNAMENT_STATUS : liveStatus;
+  const activeScorecards = useMockData ? MOCK_SCORECARD : liveScorecards;
   const mockStandings = useMockData ? calculateStandings(MOCK_POOL_PLAYERS) : [];
 
   // Flat array of current user's pick names (for highlighting on leaderboard)
   const myPicksList = useMemo(() => Object.values(myPicks).filter(Boolean), [myPicks]);
+
+  // Look up golfer from active leaderboard (live or mock)
+  const getActiveGolferScore = useCallback((name) => {
+    return leaderboard.find(g => g.name === name) || null;
+  }, [leaderboard]);
 
   useEffect(() => {
     if (!poolId) return;
@@ -458,8 +471,8 @@ function App() {
       {tournamentActive && (
         <div className="tourney-bar">
           <span className="tourney-live-dot"></span>
-          <span className="tourney-round">{TOURNAMENT_STATUS.roundLabel}</span>
-          <span className="tourney-cut">Cut: {TOURNAMENT_STATUS.cutLine}</span>
+          <span className="tourney-round">{activeTournamentStatus.roundLabel}</span>
+          <span className="tourney-cut">Cut: {activeTournamentStatus.cutLine}</span>
         </div>
       )}
 
@@ -512,7 +525,7 @@ function App() {
 
                   <h3 className="section-title">Counting (Best 4)</h3>
                   {me.counting.map(g => {
-                    const entry = getGolferScore(g.name);
+                    const entry = getActiveGolferScore(g.name);
                     const golferData = GOLFERS.find(gl => gl.name === g.name);
                     const others = getPickedBy(g.name).filter(o => o.id !== playerId);
                     return (
@@ -546,7 +559,7 @@ function App() {
                     <>
                       <h3 className="section-title bench-title">Bench</h3>
                       {me.bench.map(g => {
-                        const entry = getGolferScore(g.name);
+                        const entry = getActiveGolferScore(g.name);
                         const golferData = GOLFERS.find(gl => gl.name === g.name);
                         return (
                           <div key={g.name} className={`live-golfer-card bench ${g.status === 'cut' ? 'cut' : ''}`} onClick={() => openGolfer(g.name)}>
@@ -650,7 +663,7 @@ function App() {
                     </thead>
                     <tbody>
                       {leaderboard.filter(g => g.status !== 'cut').slice(0, 20).map(g => {
-                        const sc = MOCK_SCORECARD[g.name];
+                        const sc = activeScorecards[g.name];
                         const currentRound = sc?.rounds ? sc.rounds.findIndex(r => r && r.some(h => h === null)) : -1;
                         const displayRound = currentRound >= 0 ? currentRound : (sc?.rounds ? sc.rounds.length - 1 : -1);
                         const holes = displayRound >= 0 && sc?.rounds?.[displayRound] ? sc.rounds[displayRound] : [];
@@ -774,7 +787,7 @@ function App() {
               return (
               <div key={data.id || data.name} className="member-card">
                 <div className="member-top"><span className="member-name">{data.name}{data.isCommissioner && <span className="tag">Comm</span>}</span><span className={`member-status ${data.locked ? 'locked' : ''}`}>{data.locked ? 'Locked' : 'Selecting'}</span></div>
-                {data.locked && isPoolLocked && <div className="member-picks">{(data.picks||[]).map(pick => { const g = GOLFERS.find(gl => gl.name === pick); const score = tournamentActive ? getGolferScore(pick) : null; return <span key={pick} className={`pick-chip ${score?.status === 'cut' ? 'cut-chip' : ''}`}>{g?.flag} {pick.split(' ').pop()}{tournamentActive && score ? ` (${formatScore(score.total)})` : ''}</span>; })}</div>}
+                {data.locked && isPoolLocked && <div className="member-picks">{(data.picks||[]).map(pick => { const g = GOLFERS.find(gl => gl.name === pick); const score = tournamentActive ? getActiveGolferScore(pick) : null; return <span key={pick} className={`pick-chip ${score?.status === 'cut' ? 'cut-chip' : ''}`}>{g?.flag} {pick.split(' ').pop()}{tournamentActive && score ? ` (${formatScore(score.total)})` : ''}</span>; })}</div>}
                 {data.locked && !isPoolLocked && <div className="member-picks"><span className="pick-chip hidden-chip">Picks hidden until pool locks</span></div>}
               </div>
               );
@@ -795,8 +808,8 @@ function App() {
 
       {/* ═══ SCORECARD MODAL ═══ */}
       {selectedGolfer && (() => {
-        const sc = tournamentActive ? MOCK_SCORECARD[selectedGolfer] : null;
-        const entry = tournamentActive ? getGolferScore(selectedGolfer) : null;
+        const sc = tournamentActive ? activeScorecards[selectedGolfer] : null;
+        const entry = tournamentActive ? getActiveGolferScore(selectedGolfer) : null;
         const golferData = GOLFERS.find(gl => gl.name === selectedGolfer);
         const pickedBy = tournamentActive ? getPickedBy(selectedGolfer) : [];
         if (!tournamentActive && !entry) {
@@ -852,7 +865,7 @@ function App() {
                   <span className="sc-pos-line">
                     {entry.status === 'cut' ? 'Missed Cut' : `T${entry.pos}`}
                     {entry.status === 'active' && ` · Thru ${entry.thru}`}
-                    {entry.status === 'finished' && ` · R${TOURNAMENT_STATUS.round} Complete`}
+                    {entry.status === 'finished' && ` · R${activeTournamentStatus.round} Complete`}
                   </span>
                 </div>
                 <div className="sc-total-box">
