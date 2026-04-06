@@ -123,6 +123,9 @@ function App() {
   const leaderboard = useMockData ? MOCK_LEADERBOARD : [];
   const mockStandings = useMockData ? calculateStandings(MOCK_POOL_PLAYERS) : [];
 
+  // Flat array of current user's pick names (for highlighting on leaderboard)
+  const myPicksList = useMemo(() => Object.values(myPicks).filter(Boolean), [myPicks]);
+
   useEffect(() => {
     if (!poolId) return;
     const unsub = subscribeToPool(poolId, (data) => {
@@ -485,7 +488,7 @@ function App() {
         {tab === 'myteam' && tournamentActive && (
           <div className="myteam-tab">
             {(() => {
-              const me = mockStandings.find(p => p.id === 'luke') || mockStandings[0];
+              const me = mockStandings.find(p => p.id === playerId) || mockStandings[0];
               if (!me) return null;
               const myRank = mockStandings.indexOf(me) + 1;
               return (
@@ -511,7 +514,7 @@ function App() {
                   {me.counting.map(g => {
                     const entry = getGolferScore(g.name);
                     const golferData = GOLFERS.find(gl => gl.name === g.name);
-                    const others = getPickedBy(g.name).filter(o => o.id !== 'luke');
+                    const others = getPickedBy(g.name).filter(o => o.id !== playerId);
                     return (
                       <div key={g.name} className={`live-golfer-card ${g.status === 'active' ? 'on-course' : ''}`} onClick={() => openGolfer(g.name)}>
                         <div className="live-golfer-pos">{typeof entry?.pos === 'number' ? `T${entry.pos}` : entry?.pos}</div>
@@ -587,7 +590,7 @@ function App() {
                 </div>
                 {leaderboard.map((g, idx) => {
                   const golferData = GOLFERS.find(gl => gl.name === g.name);
-                  const isMine = MOCK_POOL_PLAYERS[0]?.picks.includes(g.name);
+                  const isMine = myPicksList.includes(g.name);
                   const pickedBy = tournamentActive ? getPickedBy(g.name) : [];
                   return (
                     <div key={g.name} className={`lb-row ${g.status === 'cut' ? 'cut-row' : ''} ${g.status === 'active' ? 'active-row' : ''} ${isMine ? 'my-pick' : ''}`} onClick={() => g.status !== 'cut' && openGolfer(g.name)}>
@@ -651,7 +654,7 @@ function App() {
                         const currentRound = sc?.rounds ? sc.rounds.findIndex(r => r && r.some(h => h === null)) : -1;
                         const displayRound = currentRound >= 0 ? currentRound : (sc?.rounds ? sc.rounds.length - 1 : -1);
                         const holes = displayRound >= 0 && sc?.rounds?.[displayRound] ? sc.rounds[displayRound] : [];
-                        const isMine = MOCK_POOL_PLAYERS[0]?.picks.includes(g.name);
+                        const isMine = myPicksList.includes(g.name);
 
                         return (
                           <tr key={g.name} className={`classic-player-row ${isMine ? 'classic-mine' : ''}`} onClick={() => openGolfer(g.name)}>
@@ -689,13 +692,13 @@ function App() {
             <h3>Pool Standings</h3>
             <p className="standings-sub">{tournamentActive ? 'Live scores · Best 4 of 6 count' : 'Scores update live during the tournament'}</p>
             {(tournamentActive ? mockStandings : standings).map((p, idx) => (
-              <div key={p.id} className={`standing-row ${p.id === 'luke' ? 'me' : ''} ${!p.qualified && tournamentActive ? 'eliminated' : ''}`}>
+              <div key={p.id} className={`standing-row ${p.id === playerId ? 'me' : ''} ${!p.qualified && tournamentActive ? 'eliminated' : ''}`}>
                 <span className="standing-rank">{!p.qualified && tournamentActive ? '-' : idx + 1}</span>
                 <div className="standing-info">
                   <span className="standing-name">
                     {p.name}
                     {p.isCommissioner && <span className="tag">Comm</span>}
-                    {p.id === 'luke' && <span className="tag me-tag">You</span>}
+                    {p.id === playerId && <span className="tag me-tag">You</span>}
                   </span>
                   {tournamentActive ? (
                     <span className="standing-detail">
@@ -771,7 +774,7 @@ function App() {
               return (
               <div key={data.id || data.name} className="member-card">
                 <div className="member-top"><span className="member-name">{data.name}{data.isCommissioner && <span className="tag">Comm</span>}</span><span className={`member-status ${data.locked ? 'locked' : ''}`}>{data.locked ? 'Locked' : 'Selecting'}</span></div>
-                {data.locked && isPoolLocked && <div className="member-picks">{(data.picks||[]).map(pick => { const g = GOLFERS.find(gl => gl.name === pick); const score = getGolferScore(pick); return <span key={pick} className={`pick-chip ${score?.status === 'cut' ? 'cut-chip' : ''}`}>{g?.flag} {pick.split(' ').pop()}{tournamentActive && score ? ` (${formatScore(score.total)})` : ''}</span>; })}</div>}
+                {data.locked && isPoolLocked && <div className="member-picks">{(data.picks||[]).map(pick => { const g = GOLFERS.find(gl => gl.name === pick); const score = tournamentActive ? getGolferScore(pick) : null; return <span key={pick} className={`pick-chip ${score?.status === 'cut' ? 'cut-chip' : ''}`}>{g?.flag} {pick.split(' ').pop()}{tournamentActive && score ? ` (${formatScore(score.total)})` : ''}</span>; })}</div>}
                 {data.locked && !isPoolLocked && <div className="member-picks"><span className="pick-chip hidden-chip">Picks hidden until pool locks</span></div>}
               </div>
               );
@@ -792,10 +795,29 @@ function App() {
 
       {/* ═══ SCORECARD MODAL ═══ */}
       {selectedGolfer && (() => {
-        const sc = MOCK_SCORECARD[selectedGolfer];
-        const entry = getGolferScore(selectedGolfer);
+        const sc = tournamentActive ? MOCK_SCORECARD[selectedGolfer] : null;
+        const entry = tournamentActive ? getGolferScore(selectedGolfer) : null;
         const golferData = GOLFERS.find(gl => gl.name === selectedGolfer);
-        const pickedBy = getPickedBy(selectedGolfer);
+        const pickedBy = tournamentActive ? getPickedBy(selectedGolfer) : [];
+        if (!tournamentActive && !entry) {
+          // Pre-tournament: show basic golfer info without scores
+          return (
+            <div className="sc-overlay" onClick={() => setSelectedGolfer(null)}>
+              <div className="sc-modal" onClick={e => e.stopPropagation()}>
+                <div className="sc-drag-handle"><div className="sc-drag-bar"></div></div>
+                <button className="sc-close" onClick={() => setSelectedGolfer(null)}>&times;</button>
+                <div className="sc-header">
+                  <span className="sc-flag">{golferData?.flag}</span>
+                  <div className="sc-info">
+                    <span className="sc-name">{selectedGolfer}</span>
+                    <span className="sc-pos-line">OWGR #{golferData?.owgr}{golferData?.majors > 0 ? ` · ${golferData.majors} major${golferData.majors > 1 ? 's' : ''}` : ''}{golferData?.mastersWins > 0 ? ` · ${golferData.mastersWins}x Masters` : ''}</span>
+                  </div>
+                </div>
+                <p style={{ textAlign: 'center', color: 'var(--masters-text2)', padding: '40px 0', fontStyle: 'italic' }}>Scores available when the tournament starts</p>
+              </div>
+            </div>
+          );
+        }
         if (!entry) return null;
 
         const roundLabels = ['R1', 'R2', 'R3', 'R4'];
