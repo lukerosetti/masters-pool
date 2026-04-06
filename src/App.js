@@ -699,7 +699,8 @@ function App() {
               return (
               <div key={data.id || data.name} className="member-card">
                 <div className="member-top"><span className="member-name">{data.name}{data.isCommissioner && <span className="tag">Comm</span>}</span><span className={`member-status ${data.locked ? 'locked' : ''}`}>{data.locked ? 'Locked' : 'Selecting'}</span></div>
-                {data.locked && <div className="member-picks">{(data.picks||[]).map(pick => { const g = GOLFERS.find(gl => gl.name === pick); const score = getGolferScore(pick); return <span key={pick} className={`pick-chip ${score?.status === 'cut' ? 'cut-chip' : ''}`}>{g?.flag} {pick.split(' ').pop()}{tournamentActive && score ? ` (${formatScore(score.total)})` : ''}</span>; })}</div>}
+                {data.locked && isPoolLocked && <div className="member-picks">{(data.picks||[]).map(pick => { const g = GOLFERS.find(gl => gl.name === pick); const score = getGolferScore(pick); return <span key={pick} className={`pick-chip ${score?.status === 'cut' ? 'cut-chip' : ''}`}>{g?.flag} {pick.split(' ').pop()}{tournamentActive && score ? ` (${formatScore(score.total)})` : ''}</span>; })}</div>}
+                {data.locked && !isPoolLocked && <div className="member-picks"><span className="pick-chip hidden-chip">Picks hidden until pool locks</span></div>}
               </div>
               );
             })}
