@@ -157,13 +157,33 @@ input, button { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
 /* ─── Standings ─── */
 .standings-tab h3, .players-tab h3, .rules-tab h3 { font-size: 18px; font-family: Georgia, serif; color: var(--masters-green); margin-bottom: 4px; }
 .standings-sub { font-size: 12px; color: var(--masters-text2); margin-bottom: 16px; }
-.standing-row { display: flex; align-items: center; gap: 10px; padding: 14px 12px; border-radius: 10px; background: var(--masters-white); border: 1px solid var(--masters-border); margin-bottom: 6px; }
-.standing-row.me { border-color: var(--masters-green); background: rgba(0,103,71,0.04); }
+.standing-card-wrap { margin-bottom: 6px; border-radius: 10px; overflow: hidden; border: 1px solid var(--masters-border); background: var(--masters-white); }
+.standing-card-wrap.expanded { border-color: var(--masters-green); }
+.standing-row { display: flex; align-items: center; gap: 10px; padding: 14px 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.standing-row.me { background: rgba(0,103,71,0.04); }
 .standing-rank { font-size: 18px; font-weight: 800; color: var(--masters-green); min-width: 24px; text-align: center; font-family: Georgia, serif; }
 .standing-info { flex: 1; }
 .standing-name { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
 .standing-status { font-size: 11px; color: var(--masters-text2); }
 .standing-score { font-size: 20px; font-weight: 800; color: var(--masters-green); font-family: Georgia, serif; }
+.standing-chevron { font-size: 10px; color: var(--masters-text2); transition: transform 0.2s; margin-left: 4px; }
+.standing-chevron.open { transform: rotate(180deg); }
+.standing-detail-card { padding: 0 12px 12px; border-top: 1px solid var(--masters-border); }
+.standing-golfer-row { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.04); }
+.standing-golfer-row:last-of-type { border-bottom: none; }
+.standing-golfer-row.cut { opacity: 0.4; text-decoration: line-through; }
+.standing-golfer-row.bench { opacity: 0.5; }
+.standing-golfer-pod { font-size: 11px; font-weight: 800; color: var(--masters-green); min-width: 16px; text-align: center; font-family: Georgia, serif; }
+.standing-golfer-flag { font-size: 14px; min-width: 20px; }
+.standing-golfer-name { flex: 1; font-size: 14px; font-weight: 500; }
+.standing-golfer-thru { font-size: 11px; color: var(--masters-text2); min-width: 20px; text-align: right; }
+.standing-golfer-thru.finished { color: var(--masters-green); font-weight: 600; }
+.standing-golfer-score { font-size: 15px; font-weight: 700; font-family: Georgia, serif; min-width: 36px; text-align: right; }
+.standing-golfer-score.under { color: #c41e3a; }
+.standing-golfer-score.over { color: var(--masters-text2); }
+.counting-badge { font-size: 11px; color: var(--masters-green); font-weight: 700; }
+.standing-detail-footer { padding-top: 8px; font-size: 12px; color: var(--masters-text2); text-align: right; font-family: Georgia, serif; }
+.standing-detail-footer strong { color: var(--masters-green); font-size: 14px; }
 .tag { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(0,103,71,0.1); color: var(--masters-green); }
 .me-tag { background: rgba(212,175,55,0.15); color: var(--masters-gold); }
 

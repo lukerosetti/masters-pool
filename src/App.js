@@ -35,6 +35,7 @@ function App() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showCommTools, setShowCommTools] = useState(false);
+  const [expandedStanding, setExpandedStanding] = useState(null);
   const [deadlineInput, setDeadlineInput] = useState('');
   const [deadlineCountdown, setDeadlineCountdown] = useState(null);
 
@@ -762,26 +763,67 @@ function App() {
             <h3>Pool Standings</h3>
             <p className="standings-sub">{tournamentActive ? 'Live scores · Best 4 of 6 count' : 'Scores update live during the tournament'}</p>
             {(tournamentActive ? activeStandings : standings).map((p, idx) => (
-              <div key={p.id} className={`standing-row ${p.id === playerId ? 'me' : ''} ${!p.qualified && tournamentActive ? 'eliminated' : ''}`}>
-                <span className="standing-rank">{!p.qualified && tournamentActive ? '-' : idx + 1}</span>
-                <div className="standing-info">
-                  <span className="standing-name">
-                    {p.name}
-                    {p.isCommissioner && <span className="tag">Comm</span>}
-                    {p.id === playerId && <span className="tag me-tag">You</span>}
-                  </span>
-                  {tournamentActive ? (
-                    <span className="standing-detail">
-                      {p.qualified ? `${p.madeCut}/6 made cut` : `${p.madeCut}/6 made cut — Eliminated`}
-                      {p.pickedLeader && <span className="leader-badge">Has leader</span>}
+              <div key={p.id} className={`standing-card-wrap ${expandedStanding === p.id ? 'expanded' : ''}`}>
+                <div className={`standing-row ${p.id === playerId ? 'me' : ''} ${!p.qualified && tournamentActive ? 'eliminated' : ''}`}
+                  onClick={() => { setExpandedStanding(expandedStanding === p.id ? null : p.id); haptic(); }}>
+                  <span className="standing-rank">{!p.qualified && tournamentActive ? '-' : idx + 1}</span>
+                  <div className="standing-info">
+                    <span className="standing-name">
+                      {p.name}
+                      {p.isCommissioner && <span className="tag">Comm</span>}
+                      {p.id === playerId && <span className="tag me-tag">You</span>}
                     </span>
-                  ) : (
-                    <span className="standing-status">{p.locked ? `${p.picks?.length || 0} golfers` : 'Pending'}</span>
-                  )}
+                    {tournamentActive ? (
+                      <span className="standing-detail">
+                        {p.qualified ? `${p.madeCut}/6 made cut` : `${p.madeCut}/6 made cut — Eliminated`}
+                        {p.pickedLeader && <span className="leader-badge">Has leader</span>}
+                      </span>
+                    ) : (
+                      <span className="standing-status">{p.locked ? `${p.picks?.length || 0} golfers` : 'Pending'}</span>
+                    )}
+                  </div>
+                  <span className={`standing-score ${!p.qualified && tournamentActive ? 'elim-score' : ''}`}>
+                    {!tournamentActive ? 'E' : !p.qualified ? 'DQ' : formatScore(p.totalScore)}
+                  </span>
+                  <span className={`standing-chevron ${expandedStanding === p.id ? 'open' : ''}`}>&#9662;</span>
                 </div>
-                <span className={`standing-score ${!p.qualified && tournamentActive ? 'elim-score' : ''}`}>
-                  {!tournamentActive ? 'E' : !p.qualified ? 'DQ' : formatScore(p.totalScore)}
-                </span>
+                {expandedStanding === p.id && (
+                  <div className="standing-detail-card">
+                    {(tournamentActive && p.golferScores ? p.golferScores : (p.picks || []).map(name => {
+                      const g = GOLFERS.find(gl => gl.name === name);
+                      return { name, score: null, pos: null, status: 'upcoming', today: null, thru: null, flag: g?.flag, pod: g ? PODS.find(pd => g.owgr >= pd.range[0] && g.owgr <= pd.range[1])?.id : null };
+                    })).map((g, gi) => {
+                      const golferInfo = GOLFERS.find(gl => gl.name === g.name);
+                      const pod = golferInfo ? PODS.find(pd => golferInfo.owgr >= pd.range[0] && golferInfo.owgr <= pd.range[1]) : null;
+                      const isCounting = tournamentActive && p.counting && p.counting.some(c => c.name === g.name);
+                      const isBench = tournamentActive && p.bench && p.bench.some(b => b.name === g.name);
+                      const isCut = g.status === 'cut';
+                      return (
+                        <div key={g.name} className={`standing-golfer-row ${isCut ? 'cut' : ''} ${isBench ? 'bench' : ''}`}>
+                          <span className="standing-golfer-pod">{pod?.id || '?'}</span>
+                          <span className="standing-golfer-flag">{golferInfo?.flag || ''}</span>
+                          <span className="standing-golfer-name">{g.name}</span>
+                          {tournamentActive && (
+                            <>
+                              <span className={`standing-golfer-thru ${g.thru === 'F' ? 'finished' : ''}`}>
+                                {isCut ? 'MC' : g.thru === 'F' ? 'F' : g.thru ? g.thru : '-'}
+                              </span>
+                              <span className={`standing-golfer-score ${g.score < 0 ? 'under' : g.score > 0 ? 'over' : ''}`}>
+                                {isCut ? 'MC' : formatScore(g.score)}
+                              </span>
+                            </>
+                          )}
+                          {tournamentActive && isCounting && <span className="counting-badge">&#10003;</span>}
+                        </div>
+                      );
+                    })}
+                    {tournamentActive && p.qualified && (
+                      <div className="standing-detail-footer">
+                        Best 4 total: <strong>{formatScore(p.totalScore)}</strong>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
