@@ -45,11 +45,18 @@ export function useGolfScores() {
 
       if (eventState === 'in') {
         status = 'in_progress';
-        // Determine current round from competitors
-        const maxPeriod = Math.max(...comp.competitors
-          .map(p => p.linescores?.length || 0)
-          .filter(n => n > 0), 0);
-        round = maxPeriod || 1;
+        // Determine current round by counting rounds with actual hole data
+        // ESPN pre-populates empty linescore entries, so count by played holes
+        let maxRoundWithData = 0;
+        comp.competitors.forEach(p => {
+          (p.linescores || []).forEach((ls, idx) => {
+            const holesPlayed = (ls.linescores || []).filter(h => h.value != null).length;
+            if (holesPlayed > 0 && (idx + 1) > maxRoundWithData) {
+              maxRoundWithData = idx + 1;
+            }
+          });
+        });
+        round = maxRoundWithData || 1;
         const roundNames = { 1: 'Round 1', 2: 'Round 2', 3: 'Round 3 — Moving Day', 4: 'Final Round' };
         roundLabel = roundNames[round] || `Round ${round}`;
       } else if (eventState === 'post') {
@@ -123,20 +130,25 @@ export function useGolfScores() {
         }
 
         // Parse today's score and thru
+        // Find the latest round with actual hole data (not empty pre-populated rounds)
         let today = null;
         let thru = null;
         if (linescores.length > 0) {
-          const currentRound = linescores[linescores.length - 1];
+          let currentRound = null;
+          for (let ri = linescores.length - 1; ri >= 0; ri--) {
+            const ls = linescores[ri];
+            const played = (ls?.linescores || []).filter(h => h.value != null).length;
+            if (played > 0) { currentRound = ls; break; }
+          }
+          if (!currentRound) currentRound = linescores[0]; // fallback
           if (currentRound) {
             today = currentRound.displayValue || null;
-            // Convert displayValue to number
             if (today === 'E') today = 'E';
             else if (today) {
               const num = parseInt(today);
               if (!isNaN(num)) today = num;
             }
 
-            // Count holes played in current round
             const holeScores = currentRound.linescores || [];
             const holesPlayed = holeScores.filter(h => h.value != null).length;
             thru = holesPlayed >= 18 ? 'F' : holesPlayed > 0 ? holesPlayed : null;
