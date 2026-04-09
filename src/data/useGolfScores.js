@@ -107,7 +107,9 @@ export function useGolfScores() {
         const name = normalizeESPNName(espnName);
         if (!name) return;
 
-        const score = p.score; // total to par (number or null)
+        const rawScore = p.score; // total to par (string like "-3", "E", "+1", or null)
+        const score = rawScore === 'E' ? 0 : (rawScore != null ? parseInt(rawScore) : null);
+        // score is now a number (or null/NaN for unstarted)
         const linescores = p.linescores || [];
         const playerStatus = p.status?.type?.name || '';
 
@@ -169,7 +171,7 @@ export function useGolfScores() {
         board.push({
           name,
           pos,
-          total: score != null ? score : (typeof score === 'number' ? score : null),
+          total: typeof score === 'number' && !isNaN(score) ? score : null,
           today,
           thru,
           r1, r2, r3, r4,

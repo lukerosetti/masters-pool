@@ -127,7 +127,7 @@ export const calculateStandings = (players) => {
     const golferScores = player.picks.map(name => {
       const entry = getGolferScore(name);
       if (!entry) return { name, score: 999, pos: 99, status: 'unknown' };
-      const numScore = entry.total === 'E' ? 0 : (typeof entry.total === 'number' ? entry.total : 999);
+      const numScore = typeof entry.total === 'number' ? entry.total : (entry.total === 'E' ? 0 : 999);
       return { name, score: numScore, pos: entry.pos, status: entry.status, today: entry.today, thru: entry.thru };
     });
 
@@ -181,7 +181,7 @@ export const calculateLiveStandings = (poolPlayers, liveBoard, leaderName) => {
     const golferScores = picks.map(name => {
       const entry = getBoardEntry(name);
       if (!entry) return { name, score: 999, pos: 99, status: 'unknown', today: null, thru: null };
-      const numScore = entry.total === 'E' ? 0 : (typeof entry.total === 'number' ? entry.total : 999);
+      const numScore = typeof entry.total === 'number' ? entry.total : (entry.total === 'E' ? 0 : 999);
       return { name, score: numScore, pos: entry.pos, status: entry.status, today: entry.today, thru: entry.thru };
     });
 
