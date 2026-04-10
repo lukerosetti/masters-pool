@@ -1,0 +1,76 @@
+{
+  "rules": {
+    "//": "Masters Pool — Firebase Realtime Database security rules",
+    "//1": "Default deny everything.",
+    "//2": "Only allow read/write to /golf-pools/{5-char-code}.",
+    "//3": "Enforce schema on every field to prevent garbage writes.",
+    "//4": "Unknown fields are rejected ($other: false).",
+    "//5": "This does NOT prevent someone with a pool code from tampering with that pool.",
+    "//6": "For user-level ownership, add Firebase Anonymous Auth (Phase 2).",
+
+    ".read": false,
+    ".write": false,
+
+    "golf-pools": {
+      ".read": false,
+      ".write": false,
+
+      "$poolId": {
+        ".read": "$poolId.matches(/^[A-Z0-9]{5}$/)",
+        ".write": "$poolId.matches(/^[A-Z0-9]{5}$/)",
+
+        "name": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+        },
+        "createdAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "deadline": {
+          ".validate": "newData.isNumber()"
+        },
+        "locked": {
+          ".validate": "newData.isBoolean()"
+        },
+        "lockedAt": {
+          ".validate": "newData.isNumber()"
+        },
+
+        "players": {
+          "$playerId": {
+            ".validate": "$playerId.matches(/^player_[0-9]+$/)",
+
+            "name": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 50"
+            },
+            "picks": {
+              ".validate": "newData.numChildren() <= 6",
+              "$index": {
+                ".validate": "newData.isString() && newData.val().length <= 80"
+              }
+            },
+            "locked": {
+              ".validate": "newData.isBoolean()"
+            },
+            "joinedAt": {
+              ".validate": "newData.isNumber()"
+            },
+            "submittedAt": {
+              ".validate": "newData.isNumber()"
+            },
+            "isCommissioner": {
+              ".validate": "newData.isBoolean()"
+            },
+
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+
+        "$other": {
+          ".validate": false
+        }
+      }
+    }
+  }
+}
