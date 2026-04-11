@@ -171,7 +171,8 @@ export const calculateStandings = (players) => {
 // poolPlayers: array of { id, name, picks: [...], isCommissioner, locked }
 // liveBoard: array of { name, pos, total, today, thru, status, ... }
 // leaderName: name of the tournament leader (liveBoard[0].name)
-export const calculateLiveStandings = (poolPlayers, liveBoard, leaderName) => {
+// projectedCutLine: number (to par) representing projected cut line, or null if N/A
+export const calculateLiveStandings = (poolPlayers, liveBoard, leaderName, projectedCutLine = null) => {
   if (!poolPlayers || !liveBoard || liveBoard.length === 0) return [];
 
   const getBoardEntry = (golferName) => liveBoard.find(g => g.name === golferName);
@@ -180,9 +181,11 @@ export const calculateLiveStandings = (poolPlayers, liveBoard, leaderName) => {
     const picks = player.picks || [];
     const golferScores = picks.map(name => {
       const entry = getBoardEntry(name);
-      if (!entry) return { name, score: 999, pos: 99, status: 'unknown', today: null, thru: null };
+      if (!entry) return { name, score: 999, pos: 99, status: 'unknown', today: null, thru: null, projectedCut: false };
       const numScore = typeof entry.total === 'number' ? entry.total : (entry.total === 'E' ? 0 : 999);
-      return { name, score: numScore, pos: entry.pos, status: entry.status, today: entry.today, thru: entry.thru };
+      // Projected cut: score is above the projected cut line (display only)
+      const projectedCut = (projectedCutLine != null && numScore !== 999 && numScore > projectedCutLine);
+      return { name, score: numScore, pos: entry.pos, status: entry.status, today: entry.today, thru: entry.thru, projectedCut };
     });
 
     // Sort by score (lowest first)
@@ -190,10 +193,23 @@ export const calculateLiveStandings = (poolPlayers, liveBoard, leaderName) => {
     const counting = sorted.slice(0, 4); // Best 4
     const bench = sorted.slice(4); // Worst 2
 
-    // Must have 4 golfers make the cut to qualify
+    // Must have 4 golfers make the cut to qualify (based on ESPN's official cut status)
     const madeCut = golferScores.filter(g => g.status !== 'cut' && g.status !== 'unknown').length;
     const qualified = madeCut >= 4;
     const totalScore = qualified ? counting.reduce((sum, g) => sum + g.score, 0) : 999;
+
+    // Projected qualification: how many golfers are at or below the projected cut line
+    // (display only — does not affect actual scoring/qualification)
+    let projectedMadeCut = madeCut;
+    let projectedQualified = qualified;
+    if (projectedCutLine != null) {
+      projectedMadeCut = golferScores.filter(g => {
+        if (g.status === 'cut' || g.status === 'unknown') return false;
+        if (g.score === 999) return false;
+        return g.score <= projectedCutLine;
+      }).length;
+      projectedQualified = projectedMadeCut >= 4;
+    }
 
     // Tiebreaker: picked the tournament leader
     const pickedLeader = picks.includes(leaderName);
@@ -210,6 +226,8 @@ export const calculateLiveStandings = (poolPlayers, liveBoard, leaderName) => {
       totalScore,
       qualified,
       madeCut,
+      projectedMadeCut,
+      projectedQualified,
       pickedLeader,
       bestFinish,
     };

@@ -14,6 +14,7 @@ export function useGolfScores() {
     roundLabel: '',
     status: 'pre_tournament',
     cutLine: '',
+    projectedCutLine: null,
     lastUpdated: null,
   });
   const [scorecards, setScorecards] = useState({});
@@ -65,7 +66,16 @@ export function useGolfScores() {
         roundLabel = 'Final';
       }
 
-      // Determine cut line (typically after R2)
+      // Helper: parse ESPN score string ("-3", "E", "+1") to a number, or null if invalid
+      const parseScoreString = (raw) => {
+        if (raw == null) return null;
+        if (raw === 'E') return 0;
+        const n = parseInt(raw);
+        return isNaN(n) ? null : n;
+      };
+
+      // Official cut line: worst score among players NOT marked STATUS_CUT by ESPN.
+      // Only populated once ESPN has actually flagged cut players.
       let cutLine = '';
       if (round >= 2) {
         const cutPlayers = comp.competitors.filter(p => {
@@ -73,16 +83,33 @@ export function useGolfScores() {
           return st === 'STATUS_CUT';
         });
         if (cutPlayers.length > 0) {
-          // Cut line is the worst score that made it
           const madeIt = comp.competitors.filter(p => {
             const st = p.status?.type?.name || '';
             return st !== 'STATUS_CUT' && st !== 'STATUS_WITHDRAWN' && st !== 'STATUS_DISQUALIFIED';
           });
           const worstMade = madeIt.reduce((worst, p) => {
-            const s = typeof p.score === 'number' ? p.score : 999;
-            return s > worst ? s : worst;
+            const s = parseScoreString(p.score);
+            return (s != null && s > worst) ? s : worst;
           }, -999);
           cutLine = worstMade > 0 ? `+${worstMade}` : worstMade === 0 ? 'E' : String(worstMade);
+        }
+      }
+
+      // Projected cut line (Masters rule: top 50 + ties).
+      // Computed from raw scores regardless of ESPN's status flags, so it works
+      // immediately after round 2 instead of waiting for ESPN to update.
+      // Display-only — we do NOT use this to mark players as cut.
+      // Only meaningful for events with a field large enough to have a cut.
+      let projectedCutLine = null;
+      if (round >= 2) {
+        const validScores = comp.competitors
+          .map(p => parseScoreString(p.score))
+          .filter(s => s !== null)
+          .sort((a, b) => a - b);
+        // Only compute for cut-format events (field > 60) — no-cut events are smaller
+        if (validScores.length >= 60) {
+          // Top 50 + ties: take score at index 49 (50th player), everyone at or below makes cut
+          projectedCutLine = validScores[49];
         }
       }
 
@@ -93,6 +120,7 @@ export function useGolfScores() {
         roundLabel,
         status,
         cutLine,
+        projectedCutLine,
         lastUpdated: Date.now(),
       });
 

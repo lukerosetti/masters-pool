@@ -149,8 +149,8 @@ function App() {
       id, name: data.name, picks: data.picks || [], isCommissioner: data.isCommissioner, locked: data.locked,
     })).filter(p => p.locked && p.picks.length > 0);
     const leaderName = leaderboard[0]?.name || '';
-    return calculateLiveStandings(poolPlayers, leaderboard, leaderName);
-  }, [tournamentActive, useMockData, leaderboard, poolData]);
+    return calculateLiveStandings(poolPlayers, leaderboard, leaderName, liveStatus?.projectedCutLine ?? null);
+  }, [tournamentActive, useMockData, leaderboard, poolData, liveStatus?.projectedCutLine]);
 
   const activeStandings = useMockData ? mockStandings : liveStandings;
 
@@ -762,6 +762,13 @@ function App() {
           <div className="standings-tab">
             <h3>Pool Standings</h3>
             <p className="standings-sub">{tournamentActive ? 'Live scores · Best 4 of 6 count' : 'Scores update live during the tournament'}</p>
+            {tournamentActive && liveStatus?.projectedCutLine != null && (
+              <div className="projection-banner">
+                <span className="projection-label">Projected cut</span>
+                <span className="projection-value">{liveStatus.projectedCutLine > 0 ? `+${liveStatus.projectedCutLine}` : liveStatus.projectedCutLine === 0 ? 'E' : String(liveStatus.projectedCutLine)}</span>
+                <span className="projection-note">Top 50 + ties · unofficial</span>
+              </div>
+            )}
             {(tournamentActive ? activeStandings : standings).map((p, idx) => (
               <div key={p.id} className={`standing-card-wrap ${expandedStanding === p.id ? 'expanded' : ''}`}>
                 <div className={`standing-row ${p.id === playerId ? 'me' : ''} ${!p.qualified && tournamentActive ? 'eliminated' : ''}`}
@@ -776,6 +783,9 @@ function App() {
                     {tournamentActive ? (
                       <span className="standing-detail">
                         {p.qualified ? `${p.madeCut}/6 made cut` : `${p.madeCut}/6 made cut — Eliminated`}
+                        {p.qualified && p.projectedQualified === false && liveStatus?.projectedCutLine != null && (
+                          <span className="likely-dsq-badge" title={`Only ${p.projectedMadeCut}/6 golfers are at or below the projected cut line`}>Likely DSQ</span>
+                        )}
                         {p.pickedLeader && <span className="leader-badge">Has leader</span>}
                       </span>
                     ) : (

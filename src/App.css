@@ -341,10 +341,39 @@ input, button { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans
 
 /* Standings enhancements */
 .standing-row.eliminated { opacity: 0.4; }
-.standing-detail { font-size: 11px; color: var(--masters-text2); display: flex; align-items: center; gap: 6px; }
+.standing-detail { font-size: 11px; color: var(--masters-text2); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .leader-badge { font-size: 9px; font-weight: 700; color: var(--masters-gold); background: rgba(212,175,55,0.15); padding: 1px 6px; border-radius: 4px; }
 .elim-score { color: var(--masters-red); }
 .cut-chip { opacity: 0.4; text-decoration: line-through; }
+
+/* Projected cut banner */
+.projection-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(212,175,55,0.08);
+  border: 1px solid rgba(212,175,55,0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+.projection-label { color: var(--masters-text2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; }
+.projection-value { color: var(--masters-gold); font-weight: 800; font-size: 15px; font-family: Georgia, serif; }
+.projection-note { margin-left: auto; color: var(--masters-text2); font-size: 10px; font-style: italic; }
+
+/* Likely DSQ badge — displayed when a player is projected below qualification but ESPN hasn't flagged cut yet */
+.likely-dsq-badge {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--masters-red);
+  background: rgba(220, 38, 38, 0.12);
+  border: 1px solid rgba(220, 38, 38, 0.35);
+  padding: 1px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
 
 /* ─── Scorecard Modal ─── */
 .sc-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; display: flex; align-items: flex-end; justify-content: center; }
