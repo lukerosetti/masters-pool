@@ -97,3 +97,17 @@ export async function updatePoolSettings(poolId, settings) {
 export async function deletePool(poolId) {
   await remove(ref(db, `golf-pools/${poolId}`));
 }
+
+export async function linkPoolToAccount(email, poolId, playerId, playerName, poolName) {
+  const emailKey = email.toLowerCase().replace(/\./g, ',');
+  await update(ref(db, `accounts/${emailKey}/pools/${poolId}`), {
+    playerId, playerName, poolName, linkedAt: Date.now()
+  });
+}
+
+export async function getAccountPools(email) {
+  const emailKey = email.toLowerCase().replace(/\./g, ',');
+  const snap = await get(ref(db, `accounts/${emailKey}/pools`));
+  if (!snap.exists()) return null;
+  return Object.entries(snap.val()).map(([poolId, data]) => ({ poolId, ...data }));
+}

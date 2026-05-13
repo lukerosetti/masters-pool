@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { GOLFERS, PODS, getGolfersInPod } from './data/golfers';
-import { subscribeToPool, submitPicks, joinPool, createPool, getPool, setPoolDeadline, removePlayer, lockPool } from './firebase';
+import { subscribeToPool, submitPicks, joinPool, createPool, getPool, setPoolDeadline, removePlayer, lockPool, linkPoolToAccount, getAccountPools } from './firebase';
 import { TOURNAMENT_STATUS, MOCK_LEADERBOARD, MOCK_POOL_PLAYERS, MOCK_SCORECARD, COURSE_HOLES, COURSE_PAR, getGolferScore, formatScore, calculateStandings, calculateLiveStandings, getPickedBy, calcRoundScore, calcNines } from './data/mockTournament';
 import { useGolfScores } from './data/useGolfScores';
 import './App.css';
@@ -38,6 +38,14 @@ function App() {
   const [expandedStanding, setExpandedStanding] = useState(null);
   const [deadlineInput, setDeadlineInput] = useState('');
   const [deadlineCountdown, setDeadlineCountdown] = useState(null);
+  const [knownPools, setKnownPools] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('pgaPools') || '[]'); } catch { return []; }
+  });
+  const [savedEmail, setSavedEmail] = useState(() => localStorage.getItem('pgaEmail') || '');
+  const [emailInput, setEmailInput] = useState('');
+  const [recoverEmail, setRecoverEmail] = useState('');
+  const [recoverLoading, setRecoverLoading] = useState(false);
+  const [recoverError, setRecoverError] = useState('');
 
   // Commissioner check
   const isCommissioner = poolData?.players?.[playerId]?.isCommissioner === true;
@@ -149,7 +157,9 @@ function App() {
       id, name: data.name, picks: data.picks || [], isCommissioner: data.isCommissioner, locked: data.locked,
     })).filter(p => p.locked && p.picks.length > 0);
     const leaderName = leaderboard[0]?.name || '';
-    return calculateLiveStandings(poolPlayers, leaderboard, leaderName, liveStatus?.projectedCutLine ?? null);
+    // Once the official cut is made, stop projecting — actual STATUS_CUT takes over
+    const projectedCutArg = liveStatus?.cutLine ? null : (liveStatus?.projectedCutLine ?? null);
+    return calculateLiveStandings(poolPlayers, leaderboard, leaderName, projectedCutArg);
   }, [tournamentActive, useMockData, leaderboard, poolData, liveStatus?.projectedCutLine]);
 
   const activeStandings = useMockData ? mockStandings : liveStandings;
@@ -177,6 +187,68 @@ function App() {
     if (poolId && playerId) setScreen('picks');
   }, []);
 
+  const addKnownPool = useCallback((poolCode, pid, pname, pPoolName) => {
+    setKnownPools(prev => {
+      const filtered = prev.filter(p => !(p.poolId === poolCode && p.playerId === pid));
+      const updated = [...filtered, { poolId: poolCode, playerId: pid, playerName: pname, poolName: pPoolName }];
+      localStorage.setItem('pgaPools', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  const removeKnownPool = (poolCode, pid) => {
+    setKnownPools(prev => {
+      const updated = prev.filter(p => !(p.poolId === poolCode && p.playerId === pid));
+      localStorage.setItem('pgaPools', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const enterPool = (poolCode, pid, pname) => {
+    setPoolId(poolCode); setPlayerId(pid); setPlayerName(pname);
+    localStorage.setItem('pgaPoolId', poolCode);
+    localStorage.setItem('pgaPlayerId', pid);
+    localStorage.setItem('pgaPlayerName', pname);
+    setScreen('picks');
+  };
+
+  const handleSaveEmail = async (onDone) => {
+    const email = emailInput.trim().toLowerCase();
+    if (!email || !email.includes('@')) return;
+    setSavedEmail(email);
+    localStorage.setItem('pgaEmail', email);
+    setEmailInput('');
+    setKnownPools(current => {
+      linkPoolToAccount && current.forEach(p =>
+        linkPoolToAccount(email, p.poolId, p.playerId, p.playerName, p.poolName).catch(() => {})
+      );
+      return current;
+    });
+    if (onDone) onDone();
+  };
+
+  const handleRecoverPools = async () => {
+    const email = recoverEmail.trim().toLowerCase();
+    if (!email || !email.includes('@')) { setRecoverError('Enter a valid email'); return; }
+    setRecoverLoading(true);
+    setRecoverError('');
+    try {
+      const pools = await getAccountPools(email);
+      if (!pools || pools.length === 0) {
+        setRecoverError('No pools found for that email. Check the address and try again.');
+        setRecoverLoading(false);
+        return;
+      }
+      setSavedEmail(email);
+      localStorage.setItem('pgaEmail', email);
+      pools.forEach(p => addKnownPool(p.poolId, p.playerId, p.playerName, p.poolName || p.poolId));
+      setRecoverEmail('');
+      setRecoverError('');
+      setScreen('home');
+    } catch { setRecoverError('Something went wrong. Try again.'); }
+    setRecoverLoading(false);
+  };
+
   const handleCreate = async () => {
     if (!createName.trim() || !commName.trim()) { setError('Enter pool name and your name'); return; }
     setError('');
@@ -197,7 +269,9 @@ function App() {
       localStorage.setItem('pgaPoolId', code);
       localStorage.setItem('pgaPlayerId', 'player_1');
       localStorage.setItem('pgaPlayerName', commName.trim());
-      setScreen('picks');
+      addKnownPool(code, 'player_1', commName.trim(), createName.trim());
+      if (savedEmail) linkPoolToAccount(savedEmail, code, 'player_1', commName.trim(), createName.trim()).catch(() => {});
+      if (!savedEmail) { setScreen('email-prompt'); } else { setScreen('picks'); }
     } catch (err) { setError('Error: ' + err.message); }
   };
 
@@ -217,16 +291,16 @@ function App() {
   // Step 2a: Reclaim an existing player
   const handleReclaim = (pid, pname) => {
     const code = joinCode.trim().toUpperCase();
-    setPoolId(code);
-    setPlayerId(pid);
-    setPlayerName(pname);
+    const poolName = rejoinPoolData?.name || code;
+    setPoolId(code); setPlayerId(pid); setPlayerName(pname);
     localStorage.setItem('pgaPoolId', code);
     localStorage.setItem('pgaPlayerId', pid);
     localStorage.setItem('pgaPlayerName', pname);
     haptic('medium');
-    setRejoinPlayers(null);
-    setRejoinPoolData(null);
-    setScreen('picks');
+    setRejoinPlayers(null); setRejoinPoolData(null);
+    addKnownPool(code, pid, pname, poolName);
+    if (savedEmail) linkPoolToAccount(savedEmail, code, pid, pname, poolName).catch(() => {});
+    if (!savedEmail) { setScreen('email-prompt'); } else { setScreen('picks'); }
   };
 
   // Step 2b: Join as a new player
@@ -235,16 +309,16 @@ function App() {
     setError('');
     try {
       const code = joinCode.trim().toUpperCase();
+      const poolName = rejoinPoolData?.name || code;
       const id = await joinPool(code, joinName.trim());
-      setPoolId(code);
-      setPlayerId(id);
-      setPlayerName(joinName.trim());
+      setPoolId(code); setPlayerId(id); setPlayerName(joinName.trim());
       localStorage.setItem('pgaPoolId', code);
       localStorage.setItem('pgaPlayerId', id);
       localStorage.setItem('pgaPlayerName', joinName.trim());
-      setRejoinPlayers(null);
-      setRejoinPoolData(null);
-      setScreen('picks');
+      setRejoinPlayers(null); setRejoinPoolData(null);
+      addKnownPool(code, id, joinName.trim(), poolName);
+      if (savedEmail) linkPoolToAccount(savedEmail, code, id, joinName.trim(), poolName).catch(() => {});
+      if (!savedEmail) { setScreen('email-prompt'); } else { setScreen('picks'); }
     } catch (err) { setError(err.message); }
   };
 
@@ -319,17 +393,98 @@ function App() {
         </div>
         <h1 className="home-title">PGA Championship 2026</h1>
         <p className="home-subtitle">Aronimink Golf Club</p>
-        <div className="home-actions">
-          <button className="btn-primary" onClick={() => setScreen('create')}>Create a Pool</button>
-          <button className="btn-secondary" onClick={() => setScreen('join')}>Join a Pool</button>
-        </div>
-        <div className="home-info">
-          <h3>How it works</h3>
-          <div className="info-steps">
-            <div className="info-step"><span className="step-num">1</span><span>Pick 6 golfers from ranked pods</span></div>
-            <div className="info-step"><span className="step-num">2</span><span>Best 4 scores count after the cut</span></div>
-            <div className="info-step"><span className="step-num">3</span><span>Lowest combined score wins</span></div>
+
+        {knownPools.length > 0 ? (
+          <div className="pool-switcher">
+            <p className="switcher-label">MY POOLS</p>
+            {knownPools.map(p => (
+              <div key={`${p.poolId}-${p.playerId}`} className="switcher-card" onClick={() => enterPool(p.poolId, p.playerId, p.playerName)}>
+                <div className="switcher-card-left">
+                  <span className="switcher-pool-name">{p.poolName || p.poolId}</span>
+                  <span className="switcher-pool-meta">{p.poolId} · {p.playerName}</span>
+                </div>
+                <div className="switcher-card-right">
+                  <span className="switcher-arrow">›</span>
+                  <button className="switcher-remove" onClick={e => { e.stopPropagation(); removeKnownPool(p.poolId, p.playerId); }}>×</button>
+                </div>
+              </div>
+            ))}
+            <div className="switcher-new-btns">
+              <button className="btn-secondary" onClick={() => setScreen('create')}>+ Create</button>
+              <button className="btn-secondary" onClick={() => setScreen('join')}>+ Join Another</button>
+            </div>
+            <button className="recover-link" onClick={() => setScreen('recover')}>↩ Recover my pools</button>
           </div>
+        ) : (
+          <>
+            <div className="home-actions">
+              <button className="btn-primary" onClick={() => setScreen('create')}>Create a Pool</button>
+              <button className="btn-secondary" onClick={() => setScreen('join')}>Join a Pool</button>
+            </div>
+            <div className="home-info">
+              <h3>How it works</h3>
+              <div className="info-steps">
+                <div className="info-step"><span className="step-num">1</span><span>Pick 6 golfers from ranked pods</span></div>
+                <div className="info-step"><span className="step-num">2</span><span>Best 4 scores count after the cut</span></div>
+                <div className="info-step"><span className="step-num">3</span><span>Lowest combined score wins</span></div>
+              </div>
+            </div>
+            <button className="recover-link" onClick={() => setScreen('recover')}>↩ Recover my pools</button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+
+  // ═══ EMAIL PROMPT ═══
+  if (screen === 'email-prompt') return (
+    <div className="app">
+      <div className="form-screen email-prompt-screen">
+        <div className="form-card email-prompt-card">
+          <div className="email-prompt-icon">✉</div>
+          <h2>Save your access</h2>
+          <p className="form-subtitle">Add your email to recover your picks on any device or if your browser data is cleared.</p>
+          <div className="form-field">
+            <label>Email</label>
+            <input
+              type="email"
+              placeholder="your@email.com"
+              value={emailInput}
+              onChange={e => setEmailInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSaveEmail(() => setScreen('picks'))}
+              autoFocus
+            />
+          </div>
+          <button className="btn-primary" onClick={() => handleSaveEmail(() => setScreen('picks'))} disabled={!emailInput.trim().includes('@')}>Save & Continue</button>
+          <button className="btn-ghost" onClick={() => { setEmailInput(''); setScreen('picks'); }}>Skip for now</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ═══ RECOVER ═══
+  if (screen === 'recover') return (
+    <div className="app">
+      <div className="form-screen">
+        <button className="back-btn" onClick={() => setScreen('home')}>← Back</button>
+        <div className="form-card">
+          <h2>Recover My Pools</h2>
+          <p className="form-subtitle">Enter the email you used when you joined or created a pool.</p>
+          <div className="form-field">
+            <label>Email</label>
+            <input
+              type="email"
+              placeholder="your@email.com"
+              value={recoverEmail}
+              onChange={e => { setRecoverEmail(e.target.value); setRecoverError(''); }}
+              onKeyDown={e => e.key === 'Enter' && handleRecoverPools()}
+              autoFocus
+            />
+          </div>
+          {recoverError && <div className="error-msg">{recoverError}</div>}
+          <button className="btn-primary" onClick={handleRecoverPools} disabled={recoverLoading || !recoverEmail.trim().includes('@')}>
+            {recoverLoading ? 'Searching…' : 'Find My Pools'}
+          </button>
         </div>
       </div>
     </div>
@@ -763,11 +918,11 @@ function App() {
           <div className="standings-tab">
             <h3>Pool Standings</h3>
             <p className="standings-sub">{tournamentActive ? 'Live scores · Best 4 of 6 count' : 'Scores update live during the tournament'}</p>
-            {tournamentActive && liveStatus?.projectedCutLine != null && (
+            {tournamentActive && liveStatus?.projectedCutLine != null && !liveStatus?.cutLine && (
               <div className="projection-banner">
                 <span className="projection-label">Projected cut</span>
                 <span className="projection-value">{liveStatus.projectedCutLine > 0 ? `+${liveStatus.projectedCutLine}` : liveStatus.projectedCutLine === 0 ? 'E' : String(liveStatus.projectedCutLine)}</span>
-                <span className="projection-note">Top 50 + ties · unofficial</span>
+                <span className="projection-note">Top 65 + ties · unofficial</span>
               </div>
             )}
             {(tournamentActive ? activeStandings : standings).map((p, idx) => (
