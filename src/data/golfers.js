@@ -197,14 +197,14 @@ export const normalizeESPNName = (espnName) => {
     .replace(/þ/g, 'th').replace(/Þ/g, 'Th');
 };
 
-// Pod definitions — ranked by betting odds
+// Pod definitions — 10 per pod (A-E), all remaining in F
 export const PODS = [
-  { id: 'A', label: 'Pod A', subtitle: 'Favorites', range: [1, 26] },
-  { id: 'B', label: 'Pod B', subtitle: 'Contenders', range: [27, 52] },
-  { id: 'C', label: 'Pod C', subtitle: 'Mid-Pack', range: [53, 78] },
-  { id: 'D', label: 'Pod D', subtitle: 'Longshots', range: [79, 104] },
-  { id: 'E', label: 'Pod E', subtitle: 'Deep Field', range: [105, 130] },
-  { id: 'F', label: 'Pod F', subtitle: 'Past Champs & Pros', range: [131, 999] },
+  { id: 'A', label: 'Pod A', subtitle: 'Favorites', range: [1, 10] },
+  { id: 'B', label: 'Pod B', subtitle: 'Contenders', range: [11, 20] },
+  { id: 'C', label: 'Pod C', subtitle: 'Mid-Pack', range: [21, 30] },
+  { id: 'D', label: 'Pod D', subtitle: 'Longshots', range: [31, 40] },
+  { id: 'E', label: 'Pod E', subtitle: 'Deep Field', range: [41, 50] },
+  { id: 'F', label: 'Pod F', subtitle: 'The Field', range: [51, 999] },
 ];
 
 export const getGolfersInPod = (podOrIndex) => {
