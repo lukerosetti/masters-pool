@@ -749,7 +749,7 @@ function App() {
                         <div className="live-golfer-info">
                           <span className="live-golfer-name">{g.name}</span>
                           <span className="live-golfer-round">
-                            {g.status === 'active' ? `R3 · Thru ${g.thru}` : g.status === 'finished' ? 'R3 Complete' : g.status === 'cut' ? 'Missed Cut' : ''}
+                            {g.status === 'active' ? `R${liveStatus?.round ?? ''} · Thru ${g.thru}` : g.status === 'finished' ? `R${liveStatus?.round ?? ''} Complete` : g.status === 'cut' ? 'Missed Cut' : ''}
                           </span>
                           {others.length > 0 && (
                             <div className="lb-owners mt-also">
@@ -781,7 +781,7 @@ function App() {
                             <div className="live-golfer-flag">{golferData?.flag}</div>
                             <div className="live-golfer-info">
                               <span className="live-golfer-name">{g.name}</span>
-                              <span className="live-golfer-round">{g.status === 'cut' ? 'Missed Cut' : g.status === 'active' ? `R3 · Thru ${g.thru}` : 'R3 Complete'}</span>
+                              <span className="live-golfer-round">{g.status === 'cut' ? 'Missed Cut' : g.status === 'active' ? `R${liveStatus?.round ?? ''} · Thru ${g.thru}` : `R${liveStatus?.round ?? ''} Complete`}</span>
                             </div>
                             <div className="live-golfer-scores">
                               <span className="live-total dim">{formatScore(g.score)}</span>
@@ -1063,7 +1063,7 @@ function App() {
         {tab === 'rules' && (
           <div className="rules-tab">
             <h3>Pool Rules</h3>
-            <div className="rule-block"><h4>Selection</h4><ul><li>Pick 6 golfers — one from each pod (A-F)</li><li>Pods based on FedEx Cup / World Ranking</li><li>Multiple players can pick same golfer</li><li>Picks lock before Round 1 Thursday AM</li></ul></div>
+            <div className="rule-block"><h4>Selection</h4><ul><li>Pick 6 golfers — one from each pod (A-F)</li><li>Pods ranked by betting odds to win</li><li>Multiple players can pick same golfer</li><li>Picks lock before Round 1 Thursday AM</li></ul></div>
             <div className="rule-block"><h4>Scoring</h4><ul><li>Best 4 of your 6 golfers count</li><li>Lowest combined score to par wins</li><li>Must have 4+ golfers make the cut to qualify</li><li>Fewer than 4 = eliminated</li></ul></div>
             <div className="rule-block"><h4>Tiebreaker</h4><ol><li>Picked the tournament winner</li><li>Best individual golfer finish</li><li>Then 2nd best, 3rd best, etc.</li></ol></div>
             <button className="btn-leave" onClick={handleLeave}>Leave Pool</button>
