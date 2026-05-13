@@ -1,9 +1,9 @@
-// Mock tournament data simulating Round 3 Saturday afternoon at Augusta
+// Mock tournament data simulating Round 3 Saturday afternoon
 // This will be replaced by ESPN live data during the actual tournament
 
 export const TOURNAMENT_STATUS = {
-  name: 'The Masters',
-  venue: 'Augusta National Golf Club',
+  name: 'PGA Championship',
+  venue: 'Aronimink Golf Club',
   round: 3,
   roundLabel: 'Round 3 — Moving Day',
   status: 'in_progress', // 'pre_tournament', 'in_progress', 'round_complete', 'cut', 'final'
@@ -242,28 +242,28 @@ export const calculateLiveStandings = (poolPlayers, liveBoard, leaderName, proje
   });
 };
 
-// Augusta National hole data (par for each hole)
-export const AUGUSTA_HOLES = [
-  { hole: 1, par: 4, name: 'Tea Olive', yards: 445 },
-  { hole: 2, par: 5, name: 'Pink Dogwood', yards: 575 },
-  { hole: 3, par: 4, name: 'Flowering Peach', yards: 350 },
-  { hole: 4, par: 3, name: 'Flowering Crab Apple', yards: 240 },
-  { hole: 5, par: 4, name: 'Magnolia', yards: 495 },
-  { hole: 6, par: 3, name: 'Juniper', yards: 180 },
-  { hole: 7, par: 4, name: 'Pampas', yards: 450 },
-  { hole: 8, par: 5, name: 'Yellow Jasmine', yards: 570 },
-  { hole: 9, par: 4, name: 'Carolina Cherry', yards: 460 },
-  { hole: 10, par: 4, name: 'Camellia', yards: 495 },
-  { hole: 11, par: 4, name: 'White Dogwood', yards: 520 },
-  { hole: 12, par: 3, name: 'Golden Bell', yards: 155 },
-  { hole: 13, par: 5, name: 'Azalea', yards: 510 },
-  { hole: 14, par: 4, name: 'Chinese Fir', yards: 440 },
-  { hole: 15, par: 5, name: 'Firethorn', yards: 530 },
-  { hole: 16, par: 3, name: 'Redbud', yards: 170 },
-  { hole: 17, par: 4, name: 'Nandina', yards: 440 },
-  { hole: 18, par: 4, name: 'Holly', yards: 465 },
+// Aronimink Golf Club hole data (2026 PGA Championship setup, par 70)
+export const COURSE_HOLES = [
+  { hole: 1, par: 4, yards: 434 },
+  { hole: 2, par: 4, yards: 413 },
+  { hole: 3, par: 4, yards: 455 },
+  { hole: 4, par: 4, yards: 457 },
+  { hole: 5, par: 3, yards: 171 },
+  { hole: 6, par: 4, yards: 402 },
+  { hole: 7, par: 4, yards: 431 },
+  { hole: 8, par: 3, yards: 242 },
+  { hole: 9, par: 5, yards: 605 },
+  { hole: 10, par: 4, yards: 472 },
+  { hole: 11, par: 4, yards: 425 },
+  { hole: 12, par: 4, yards: 466 },
+  { hole: 13, par: 4, yards: 385 },
+  { hole: 14, par: 3, yards: 216 },
+  { hole: 15, par: 4, yards: 546 },
+  { hole: 16, par: 5, yards: 555 },
+  { hole: 17, par: 3, yards: 229 },
+  { hole: 18, par: 4, yards: 490 },
 ];
-export const AUGUSTA_PAR = { out: 36, in: 36, total: 72 };
+export const COURSE_PAR = { out: 35, in: 35, total: 70 };
 
 // Multi-round scorecards (completed rounds have 18 holes, current round may be partial)
 export const MOCK_SCORECARD = {

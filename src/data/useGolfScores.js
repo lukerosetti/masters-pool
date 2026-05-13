@@ -2,14 +2,14 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { normalizeESPNName } from './golfers';
 
 const ESPN_GOLF = 'https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard';
-const MASTERS_EVENT_ID = '401811941';
+const PGA_CHAMP_EVENT_ID = '401811947';
 const POLL_INTERVAL = 30000; // 30 seconds
 
 export function useGolfScores() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [tournamentStatus, setTournamentStatus] = useState({
-    name: 'The Masters',
-    venue: 'Augusta National Golf Club',
+    name: 'PGA Championship',
+    venue: 'Aronimink Golf Club',
     round: 0,
     roundLabel: '',
     status: 'pre_tournament',
@@ -26,12 +26,12 @@ export function useGolfScores() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${ESPN_GOLF}?dates=20260409-20260413`);
+      const res = await fetch(`${ESPN_GOLF}?dates=20260514-20260517`);
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
 
-      // Find Masters event
-      const event = data.events?.find(e => e.id === MASTERS_EVENT_ID) || data.events?.[0];
+      // Find PGA Championship event
+      const event = data.events?.find(e => e.id === PGA_CHAMP_EVENT_ID) || data.events?.[0];
       if (!event) { setIsLoading(false); return; }
 
       const comp = event.competitions?.[0];
@@ -95,27 +95,21 @@ export function useGolfScores() {
         }
       }
 
-      // Projected cut line (Masters rule: top 50 + ties).
-      // Computed from raw scores regardless of ESPN's status flags, so it works
-      // immediately after round 2 instead of waiting for ESPN to update.
-      // Display-only — we do NOT use this to mark players as cut.
-      // Only meaningful for events with a field large enough to have a cut.
+      // Projected cut line (PGA Championship: top 65 + ties).
       let projectedCutLine = null;
       if (round >= 2) {
         const validScores = comp.competitors
           .map(p => parseScoreString(p.score))
           .filter(s => s !== null)
           .sort((a, b) => a - b);
-        // Only compute for cut-format events (field > 60) — no-cut events are smaller
         if (validScores.length >= 60) {
-          // Top 50 + ties: take score at index 49 (50th player), everyone at or below makes cut
-          projectedCutLine = validScores[49];
+          projectedCutLine = validScores[64];
         }
       }
 
       setTournamentStatus({
-        name: event.name || 'The Masters',
-        venue: 'Augusta National Golf Club',
+        name: event.name || 'PGA Championship',
+        venue: 'Aronimink Golf Club',
         round,
         roundLabel,
         status,

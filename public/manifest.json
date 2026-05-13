@@ -1,6 +1,6 @@
 {
-  "short_name": "Masters Pool",
-  "name": "Masters Pool 2026",
+  "short_name": "PGA Pool",
+  "name": "PGA Championship Pool 2026",
   "description": "Pick your golfers. Track the leaderboard. Win the pool.",
   "icons": [
     {
@@ -24,7 +24,7 @@
   "start_url": ".",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#006747",
-  "background_color": "#006747",
+  "theme_color": "#00205B",
+  "background_color": "#00205B",
   "categories": ["sports", "entertainment"]
 }
